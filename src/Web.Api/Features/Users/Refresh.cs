@@ -41,8 +41,7 @@ public static class Refresh
             string newRefreshToken = tokenProvider.GenerateRefreshToken();
 
             // Rotate the refresh token so a stolen token can only be used once.
-            refreshToken.Token = newRefreshToken;
-            refreshToken.ExpiresOnUtc = dateTimeProvider.UtcNow.AddDays(RefreshTokenExpirationInDays);
+            refreshToken.Rotate(newRefreshToken, dateTimeProvider.UtcNow.AddDays(RefreshTokenExpirationInDays));
 
             await context.SaveChangesAsync(cancellationToken);
 

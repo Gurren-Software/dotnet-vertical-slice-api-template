@@ -39,15 +39,12 @@ public static class CompleteTodo
                 return Result.Failure(TodoItemErrors.NotFound(command.TodoItemId));
             }
 
-            if (todoItem.IsCompleted)
+            Result completeResult = todoItem.Complete(dateTimeProvider.UtcNow);
+
+            if (completeResult.IsFailure)
             {
-                return Result.Failure(TodoItemErrors.AlreadyCompleted(command.TodoItemId));
+                return completeResult;
             }
-
-            todoItem.IsCompleted = true;
-            todoItem.CompletedAt = dateTimeProvider.UtcNow;
-
-            todoItem.Raise(new TodoItemCompletedDomainEvent(todoItem.Id));
 
             await context.SaveChangesAsync(cancellationToken);
 

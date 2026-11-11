@@ -64,16 +64,7 @@ public sealed class UpdateTodoHandlerTests : BaseHandlerTest
 
     private static async Task<Guid> SeedTodoAsync(ApplicationDbContext context, Guid ownerId)
     {
-        var todoItem = new TodoItem
-        {
-            Id = Guid.NewGuid(),
-            UserId = ownerId,
-            Description = "Original description",
-            Priority = Priority.Low,
-            Labels = [],
-            IsCompleted = false,
-            CreatedAt = DateTime.UtcNow
-        };
+        var todoItem = TodoItem.Create(ownerId, "Original description", Priority.Low);
 
         context.TodoItems.Add(todoItem);
         await context.SaveChangesAsync();

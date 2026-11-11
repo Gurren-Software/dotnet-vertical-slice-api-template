@@ -36,16 +36,11 @@ public static class Register
                 return Result.Failure<Guid>(UserErrors.EmailNotUnique);
             }
 
-            var user = new User
-            {
-                Id = Guid.NewGuid(),
-                Email = command.Email,
-                FirstName = command.FirstName,
-                LastName = command.LastName,
-                PasswordHash = passwordHasher.Hash(command.Password)
-            };
-
-            user.Raise(new UserRegisteredDomainEvent(user.Id, user.Email));
+            var user = User.Create(
+                command.Email,
+                command.FirstName,
+                command.LastName,
+                passwordHasher.Hash(command.Password));
 
             context.Users.Add(user);
 

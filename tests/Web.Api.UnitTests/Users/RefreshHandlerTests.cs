@@ -89,24 +89,10 @@ public sealed class RefreshHandlerTests : BaseHandlerTest
 
     private static async Task SeedRefreshTokenAsync(ApplicationDbContext context, string token, DateTime expiresOnUtc)
     {
-        var user = new User
-        {
-            Id = Guid.NewGuid(),
-            Email = "test@example.com",
-            FirstName = "Test",
-            LastName = "User",
-            PasswordHash = "hash"
-        };
+        var user = User.Create("test@example.com", "Test", "User", "hash");
 
         context.Users.Add(user);
-        context.RefreshTokens.Add(new RefreshToken
-        {
-            Id = Guid.NewGuid(),
-            Token = token,
-            UserId = user.Id,
-            ExpiresOnUtc = expiresOnUtc,
-            User = user
-        });
+        context.RefreshTokens.Add(RefreshToken.Create(user.Id, token, expiresOnUtc));
 
         await context.SaveChangesAsync();
     }

@@ -56,18 +56,13 @@ public static class CopyTodo
                 return Result.Failure<Guid>(TodoItemErrors.NotFound(command.TodoId));
             }
 
-            var copiedTodoItem = new TodoItem
-            {
-                UserId = user.Id,
-                Description = existingTodo.Description,
-                Priority = existingTodo.Priority,
-                DueDate = existingTodo.DueDate,
-                Labels = [.. existingTodo.Labels], // Create a new list to avoid reference issues
-                IsCompleted = false, // Reset completion status for the copy
-                CreatedAt = dateTimeProvider.UtcNow
-            };
-
-            copiedTodoItem.Raise(new TodoItemCreatedDomainEvent(copiedTodoItem.Id));
+            var copiedTodoItem = TodoItem.Create(
+                user.Id,
+                existingTodo.Description,
+                existingTodo.Priority,
+                existingTodo.DueDate,
+                existingTodo.Labels,
+                dateTimeProvider.UtcNow);
 
             context.TodoItems.Add(copiedTodoItem);
 

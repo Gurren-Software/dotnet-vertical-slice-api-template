@@ -49,13 +49,10 @@ public static class Login
             string accessToken = tokenProvider.Create(user);
             string refreshToken = tokenProvider.GenerateRefreshToken();
 
-            var refreshTokenEntity = new RefreshToken
-            {
-                Id = Guid.NewGuid(),
-                Token = refreshToken,
-                UserId = user.Id,
-                ExpiresOnUtc = dateTimeProvider.UtcNow.AddDays(RefreshTokenExpirationInDays)
-            };
+            var refreshTokenEntity = RefreshToken.Create(
+                user.Id,
+                refreshToken,
+                dateTimeProvider.UtcNow.AddDays(RefreshTokenExpirationInDays));
 
             context.RefreshTokens.Add(refreshTokenEntity);
 

@@ -24,6 +24,12 @@ Review the given scope (default: `git diff` + untracked files) against this temp
 - Handlers inject the concrete `ApplicationDbContext` (from `Web.Api.Database`) directly. There is **no `IApplicationDbContext`** — flag any reference to it.
 - Persistence details (keys, conversions, relationships) live in `IEntityTypeConfiguration<>` classes under `Database/Configurations/`, not on entities. Entities are plain domain types in `Features/{Entity}/`.
 
+### Entities
+- Created only via a `public static {Entity} Create(...)` factory (with a `private` parameterless ctor for EF) — flag any `new {Entity} { ... }` in slices or tests.
+- No public setters: `private init` for creation-time values (`Id`, FK ids, `CreatedAt`), `private set` for mutable state; mutations go through entity methods.
+- `Id = Guid.CreateVersion7()` inside the factory — flag `Guid.NewGuid()` for entity ids.
+- Creation date is an optional `DateTime? createdAt = null` factory parameter defaulting to `DateTime.UtcNow`; handlers pass `dateTimeProvider.UtcNow`.
+
 ### Error handling
 - Expected failures return `Result` / `Result<T>` (from `Web.Api.Common`) — no exceptions for control flow, no try/catch around business rules.
 - Errors come from static `{Entity}Errors` factories with `"{Feature}.{Reason}"` codes and the semantically correct type (`NotFound` / `Conflict` / `Problem` / `Failure`).
@@ -34,9 +40,10 @@ Review the given scope (default: `git diff` + untracked files) against this temp
 - Handlers acting on user-owned data enforce ownership: filter by `IUserContext.UserId` or return `UserErrors.Unauthorized()`.
 - Endpoints implement `IEndpoint`, call `.RequireAuthorization()` (or `.HasPermission(...)`) and `.WithTags(Tags.X)`, and contain only request→command mapping plus result matching — no business logic.
 - No `DateTime.UtcNow` / `DateTime.Now` in handlers — use `IDateTimeProvider`.
+- Dates are UTC everywhere: flag any `DateTime.Now`, `DateTime.Today`, `ToLocalTime()`, `ToUniversalTime()` outside endpoint request mapping, or an EF `HasConversion` added to paper over non-UTC dates. Endpoints convert `Kind == Local` request dates to UTC; every `DateTime` on a `Command` must have a validator rule requiring `Kind == DateTimeKind.Utc`.
 
 ### State changes & caching
-- Commands that mutate state raise a domain event via `entity.Raise(new XDomainEvent(id))` before `SaveChangesAsync`.
+- Commands that mutate state raise a domain event before `SaveChangesAsync` — from the entity's `Create` factory or mutation method (e.g. `todoItem.Complete(...)`), not by setting properties in the handler.
 - Any `HybridCache`-cached read has matching invalidation (`cache.RemoveAsync`) in every command that mutates that data; keys come from the `{Feature}CacheKeys` class.
 
 ### Tests

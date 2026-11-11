@@ -17,14 +17,7 @@ public sealed class RegisterHandlerTests : BaseHandlerTest
     {
         // Arrange
         await using ApplicationDbContext context = CreateDbContext();
-        context.Users.Add(new User
-        {
-            Id = Guid.NewGuid(),
-            Email = Command.Email,
-            FirstName = "Existing",
-            LastName = "User",
-            PasswordHash = "hash"
-        });
+        context.Users.Add(User.Create(Command.Email, "Existing", "User", "hash"));
         await context.SaveChangesAsync();
 
         var handler = new Register.Handler(context, Substitute.For<IPasswordHasher>());

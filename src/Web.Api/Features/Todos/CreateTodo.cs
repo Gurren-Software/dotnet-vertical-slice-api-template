@@ -28,7 +28,12 @@ public static class CreateTodo
             RuleFor(c => c.UserId).NotEmpty();
             RuleFor(c => c.Priority).IsInEnum();
             RuleFor(c => c.Description).NotEmpty().MaximumLength(255);
-            RuleFor(c => c.DueDate).GreaterThanOrEqualTo(DateTime.Today).When(x => x.DueDate.HasValue);
+            RuleFor(c => c.DueDate)
+                .Cascade(CascadeMode.Stop)
+                .Must(dueDate => dueDate!.Value.Kind == DateTimeKind.Utc)
+                .WithMessage("'Due Date' must include a timezone (ISO 8601 with 'Z' or an offset such as '+02:00').")
+                .GreaterThanOrEqualTo(_ => DateTime.UtcNow.Date)
+                .When(x => x.DueDate.HasValue);
         }
     }
 
@@ -52,19 +57,13 @@ public static class CreateTodo
                 return Result.Failure<Guid>(UserErrors.NotFound(command.UserId));
             }
 
-            var todoItem = new TodoItem
-            {
-                Id = Guid.NewGuid(),
-                UserId = user.Id,
-                Description = command.Description,
-                Priority = command.Priority,
-                DueDate = command.DueDate,
-                Labels = command.Labels,
-                IsCompleted = false,
-                CreatedAt = dateTimeProvider.UtcNow
-            };
-
-            todoItem.Raise(new TodoItemCreatedDomainEvent(todoItem.Id));
+            var todoItem = TodoItem.Create(
+                user.Id,
+                command.Description,
+                command.Priority,
+                command.DueDate,
+                command.Labels,
+                dateTimeProvider.UtcNow);
 
             context.TodoItems.Add(todoItem);
 
@@ -96,7 +95,11 @@ public static class CreateTodo
                 {
                     UserId = request.UserId,
                     Description = request.Description,
-                    DueDate = request.DueDate,
+                    // A date sent with an offset ("+02:00") is deserialized as Local: convert it to UTC.
+                    // A date sent without a timezone stays Unspecified and is rejected by the validator.
+                    DueDate = request.DueDate is { Kind: DateTimeKind.Local } dueDate
+                        ? dueDate.ToUniversalTime()
+                        : request.DueDate,
                     Labels = request.Labels,
                     Priority = (Priority)request.Priority
                 };

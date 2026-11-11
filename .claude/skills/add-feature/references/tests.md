@@ -48,13 +48,7 @@ public sealed class ArchiveTodoHandlerTests : BaseHandlerTest
     {
         // Arrange
         await using ApplicationDbContext context = CreateDbContext();
-        var todoItem = new TodoItem
-        {
-            Id = Guid.NewGuid(),
-            UserId = UserId,
-            Description = "Archive me",
-            CreatedAt = DateTime.UtcNow
-        };
+        var todoItem = TodoItem.Create(UserId, "Archive me", Priority.Low);
         context.TodoItems.Add(todoItem);
         await context.SaveChangesAsync();
 

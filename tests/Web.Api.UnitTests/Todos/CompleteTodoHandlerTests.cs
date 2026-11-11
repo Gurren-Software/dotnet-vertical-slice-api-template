@@ -90,17 +90,12 @@ public sealed class CompleteTodoHandlerTests : BaseHandlerTest
 
     private static async Task<Guid> SeedTodoAsync(ApplicationDbContext context, bool isCompleted)
     {
-        var todoItem = new TodoItem
+        var todoItem = TodoItem.Create(UserId, "Existing todo", Priority.Low);
+
+        if (isCompleted)
         {
-            Id = Guid.NewGuid(),
-            UserId = UserId,
-            Description = "Existing todo",
-            Priority = Priority.Low,
-            Labels = [],
-            IsCompleted = isCompleted,
-            CreatedAt = DateTime.UtcNow,
-            CompletedAt = isCompleted ? DateTime.UtcNow : null
-        };
+            todoItem.Complete();
+        }
 
         context.TodoItems.Add(todoItem);
         await context.SaveChangesAsync();

@@ -45,15 +45,13 @@ public static class ArchiveTodo
                 return Result.Failure(TodoItemErrors.NotFound(command.TodoItemId));
             }
 
-            if (todoItem.IsArchived)
+            // The entity enforces the rule, mutates its private state, and raises the event.
+            Result archiveResult = todoItem.Archive(dateTimeProvider.UtcNow);
+
+            if (archiveResult.IsFailure)
             {
-                return Result.Failure(TodoItemErrors.AlreadyArchived(command.TodoItemId));
+                return archiveResult;
             }
-
-            todoItem.IsArchived = true;
-            todoItem.ArchivedAt = dateTimeProvider.UtcNow;
-
-            todoItem.Raise(new TodoItemArchivedDomainEvent(todoItem.Id));
 
             await context.SaveChangesAsync(cancellationToken);
 
@@ -103,14 +101,19 @@ public sealed class Validator : AbstractValidator<Command>
         RuleFor(c => c.UserId).NotEmpty();
         RuleFor(c => c.Priority).IsInEnum();
         RuleFor(c => c.Description).NotEmpty().MaximumLength(255);
-        RuleFor(c => c.DueDate).GreaterThanOrEqualTo(DateTime.Today).When(x => x.DueDate.HasValue);
+        RuleFor(c => c.DueDate)
+            .Cascade(CascadeMode.Stop)
+            .Must(dueDate => dueDate!.Value.Kind == DateTimeKind.Utc)
+            .WithMessage("'Due Date' must include a timezone (ISO 8601 with 'Z' or an offset such as '+02:00').")
+            .GreaterThanOrEqualTo(_ => DateTime.UtcNow.Date)
+            .When(x => x.DueDate.HasValue);
     }
 }
 ```
 
 ## Handler
 
-`internal sealed class Handler`, primary constructor, `ApplicationDbContext` for data access — **injected directly**, there is no `IApplicationDbContext`. Guard clauses return `Result.Failure` with feature errors; the happy path mutates, raises a domain event, saves, and returns.
+`internal sealed class Handler`, primary constructor, `ApplicationDbContext` for data access — **injected directly**, there is no `IApplicationDbContext`. Guard clauses return `Result.Failure` with feature errors; the happy path creates the entity via its `{Entity}.Create(...)` factory or calls an entity method (which mutates private state and raises the domain event), then saves and returns. Handlers never assign entity properties or call `Raise` for state the entity owns.
 
 ```csharp
 internal sealed class Handler(
@@ -133,19 +136,14 @@ internal sealed class Handler(
             return Result.Failure<Guid>(UserErrors.NotFound(command.UserId));
         }
 
-        var todoItem = new TodoItem
-        {
-            Id = Guid.NewGuid(),
-            UserId = user.Id,
-            Description = command.Description,
-            Priority = command.Priority,
-            DueDate = command.DueDate,
-            Labels = command.Labels,
-            IsCompleted = false,
-            CreatedAt = dateTimeProvider.UtcNow
-        };
-
-        todoItem.Raise(new TodoItemCreatedDomainEvent(todoItem.Id));
+        // Factory generates Id (Guid.CreateVersion7) and raises TodoItemCreatedDomainEvent.
+        var todoItem = TodoItem.Create(
+            user.Id,
+            command.Description,
+            command.Priority,
+            command.DueDate,
+            command.Labels,
+            dateTimeProvider.UtcNow);
 
         context.TodoItems.Add(todoItem);
 
@@ -159,13 +157,32 @@ internal sealed class Handler(
 Notes:
 - `Handler` is `internal`, but the assembly scan finds it (Scrutor `AssignableTo(ICommandHandler<,>)` over `DefinedTypes`, which includes nested types).
 - Ownership: either filter by `userContext.UserId` in the query (preferred) or compare explicitly and return `Result.Failure(UserErrors.Unauthorized())`. `IUserContext` is in `Web.Api.Authentication`; `UserErrors`/`User` in `Web.Api.Features.Users` (add `using Web.Api.Features.Users;` — a domain-type reference, which is allowed across features).
-- `IDateTimeProvider` (from `Web.Api.Common`) for timestamps — never `DateTime.UtcNow` directly.
+- `IDateTimeProvider.UtcNow` (from `Web.Api.Common`) for timestamps — never `DateTime.Now`/`DateTime.Today`, and not `DateTime.UtcNow` directly in handlers. All dates are UTC. Dates from requests: the endpoint converts offset dates (`Kind == Local`) with `ToUniversalTime()` when mapping `Request` → `Command`, and every `DateTime` on a `Command` gets a validator rule requiring `Kind == DateTimeKind.Utc`, so dates sent without a timezone (`Unspecified`) are rejected (400).
 - If the command invalidates cached query data, inject `HybridCache` and call `cache.RemoveAsync({Feature}CacheKeys.X(...), cancellationToken)` after saving.
 - For a returning command (`ICommand<Guid>`), return the value directly — `Result<T>` has an implicit conversion: `return todoItem.Id;`.
 
 ## Domain additions (if needed)
 
 These are domain types and live in the feature folder (`Features/{Entity}/`), namespace `Web.Api.Features.{Entity}` — see the `add-entity` skill.
+
+Entity method on the existing entity (properties are `private set`, so the slice cannot mutate them directly):
+
+```csharp
+public Result Archive(DateTime? archivedAt = null)
+{
+    if (IsArchived)
+    {
+        return Result.Failure(TodoItemErrors.AlreadyArchived(Id));
+    }
+
+    IsArchived = true;
+    ArchivedAt = archivedAt ?? DateTime.UtcNow;
+
+    Raise(new TodoItemArchivedDomainEvent(Id));
+
+    return Result.Success();
+}
+```
 
 Error factory on the existing `{Entity}Errors` class:
 

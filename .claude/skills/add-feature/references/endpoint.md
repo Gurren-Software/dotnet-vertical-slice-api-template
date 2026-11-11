@@ -29,7 +29,9 @@ public sealed class Endpoint : IEndpoint
             {
                 UserId = request.UserId,
                 Description = request.Description,
-                DueDate = request.DueDate,
+                DueDate = request.DueDate is { Kind: DateTimeKind.Local } dueDate
+                        ? dueDate.ToUniversalTime() // offset ("+02:00") → UTC; no timezone → validator rejects
+                        : request.DueDate,
                 Labels = request.Labels,
                 Priority = (Priority)request.Priority
             };

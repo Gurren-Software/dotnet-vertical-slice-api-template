@@ -25,6 +25,7 @@ Backfill the three test types this template expects for every slice. Read the ta
 - **Integration test base:** inherit `BaseIntegrationTest(factory)` with the `IntegrationTestWebAppFactory` collection fixture; use `RegisterAndLoginAsync()` + `Authenticate(token)` for authenticated calls. Define private response DTO records inside the test class (see `TodosTests.TodoDto`) — integration tests go through HTTP and don't reference the slice types.
 - **Naming:** classes `{UseCase}HandlerTests` / `{Feature}ValidatorsTests` / `{Feature}Tests`; methods `Handle_Should_{Outcome}_When{Condition}` (unit) or `{Action}_Should_{Outcome}[_When{Condition}]` (integration).
 - **Structure:** `// Arrange` / `// Act` / `// Assert` comments in every test.
+- **Seeding:** build entities with their factory (`TodoItem.Create(userId, "desc", Priority.Low)`, `User.Create(...)`) and entity methods (`todoItem.Complete()`), never object initializers. Ids are generated (`Guid.CreateVersion7()`), so read them back from the created entity (`user.Id`) instead of choosing them.
 - **Assertions:** compare exact errors (`result.Error.ShouldBe(TodoItemErrors.NotFound(id))`); assert persisted state by re-reading from the context (unit) or via a GET request (integration); assert domain events with `entity.DomainEvents.ShouldContain(e => e is XDomainEvent)`.
 
 Full annotated templates: [../add-feature/references/tests.md](../add-feature/references/tests.md) (if the `add-feature` skill is installed) or mirror `CreateTodoCommandHandlerTests`, `TodoValidatorsTests`, and `TodosTests` in this repo.

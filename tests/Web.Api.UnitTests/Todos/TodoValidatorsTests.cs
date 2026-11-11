@@ -23,6 +23,40 @@ public sealed class TodoValidatorsTests
         result.ShouldHaveValidationErrorFor(c => c.Description);
     }
 
+    [Theory]
+    [InlineData(DateTimeKind.Unspecified)]
+    [InlineData(DateTimeKind.Local)]
+    public void CreateValidator_Should_HaveError_WhenDueDateIsNotUtc(DateTimeKind kind)
+    {
+        var command = new CreateTodo.Command
+        {
+            UserId = Guid.NewGuid(),
+            Description = "Buy groceries",
+            Priority = Priority.Low,
+            DueDate = DateTime.SpecifyKind(DateTime.UtcNow.AddDays(1), kind)
+        };
+
+        TestValidationResult<CreateTodo.Command> result = _createValidator.TestValidate(command);
+
+        result.ShouldHaveValidationErrorFor(c => c.DueDate);
+    }
+
+    [Fact]
+    public void CreateValidator_Should_NotHaveError_WhenDueDateIsUtcInTheFuture()
+    {
+        var command = new CreateTodo.Command
+        {
+            UserId = Guid.NewGuid(),
+            Description = "Buy groceries",
+            Priority = Priority.Low,
+            DueDate = DateTime.UtcNow.AddDays(1)
+        };
+
+        TestValidationResult<CreateTodo.Command> result = _createValidator.TestValidate(command);
+
+        result.ShouldNotHaveValidationErrorFor(c => c.DueDate);
+    }
+
     [Fact]
     public void CreateValidator_Should_NotHaveErrors_WhenCommandIsValid()
     {

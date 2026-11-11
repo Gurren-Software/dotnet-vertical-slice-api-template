@@ -95,14 +95,7 @@ public sealed class LoginHandlerTests : BaseHandlerTest
 
     private static async Task SeedUserAsync(ApplicationDbContext context)
     {
-        context.Users.Add(new User
-        {
-            Id = Guid.NewGuid(),
-            Email = Email,
-            FirstName = "Test",
-            LastName = "User",
-            PasswordHash = "hash"
-        });
+        context.Users.Add(User.Create(Email, "Test", "User", "hash"));
 
         await context.SaveChangesAsync();
     }

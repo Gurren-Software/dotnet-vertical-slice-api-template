@@ -27,7 +27,7 @@ Everything for the slice lives here — there is no separate Application/Domain/
 ## Workflow
 
 1. **Classify the use case.** A state change is a **command**; a read is a **query**. Name the slice with the use-case verb + entity, e.g. `ArchiveTodo`, `GetOverdueTodos` — that name is the file, the folder-mate, and the static class.
-2. **Check the feature's domain types.** If the entity, its `{Entity}Errors` class, or a needed domain event doesn't exist in `Features/{Entity}/`, add it first (see the `add-entity` skill). Commands that change state should raise a domain event via `entity.Raise(...)`.
+2. **Check the feature's domain types.** If the entity, its `{Entity}Errors` class, or a needed domain event doesn't exist in `Features/{Entity}/`, add it first (see the `add-entity` skill). Entities are built with `{Entity}.Create(...)` and changed through entity methods (properties are `private set`/`private init`); those factories/methods raise the domain events. Add the method to the entity if it's missing.
 3. **Create the slice file** at `src/Web.Api/Features/{Entity}/{UseCase}.cs` with the nested `Command`/`Query`, `Validator` (commands only), `Handler`, and `Endpoint`. Templates: [references/command-slice.md](references/command-slice.md), [references/query-slice.md](references/query-slice.md), and [references/endpoint.md](references/endpoint.md).
 4. **Write tests** — handler unit tests, validator tests, and an integration test. Templates: [references/tests.md](references/tests.md).
 5. **Verify:** `dotnet build` then `dotnet test`. Everything must pass.

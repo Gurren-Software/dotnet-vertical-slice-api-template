@@ -44,9 +44,7 @@ public static class UpdateTodo
                 return Result.Failure(TodoItemErrors.NotFound(command.TodoItemId));
             }
 
-            todoItem.Description = command.Description;
-
-            todoItem.Raise(new TodoItemUpdatedDomainEvent(todoItem.Id));
+            todoItem.UpdateDescription(command.Description);
 
             await context.SaveChangesAsync(cancellationToken);
 

@@ -19,14 +19,48 @@ namespace Web.Api.Features.Projects;
 
 public sealed class Project : Entity
 {
-    public Guid Id { get; set; }
-    public Guid OwnerId { get; set; }
-    public string Name { get; set; }
-    public DateTime CreatedAt { get; set; }
+    private Project()
+    {
+    }
+
+    public Guid Id { get; private init; }
+    public Guid OwnerId { get; private init; }
+    public string Name { get; private set; }
+    public DateTime CreatedAt { get; private init; }
+
+    public static Project Create(Guid ownerId, string name, DateTime? createdAt = null)
+    {
+        var project = new Project
+        {
+            Id = Guid.CreateVersion7(),
+            OwnerId = ownerId,
+            Name = name,
+            CreatedAt = createdAt ?? DateTime.UtcNow
+        };
+
+        project.Raise(new ProjectCreatedDomainEvent(project.Id));
+
+        return project;
+    }
+
+    public void Rename(string name)
+    {
+        Name = name;
+
+        Raise(new ProjectRenamedDomainEvent(Id));
+    }
 }
 ```
 
-`sealed class`, inherits `Entity` (from `Web.Api.Common` — gives it `DomainEvents` + `Raise(...)`), `Guid Id`, plain settable properties, collections initialized with `= [];`.
+- `sealed class`, inherits `Entity` (from `Web.Api.Common` — gives it `DomainEvents` + `Raise(...)`).
+- **Construction only through a `public static {Entity} Create(...)` factory** plus a `private` parameterless constructor (for EF Core). Never `new {Entity} { ... }` outside the entity.
+- **Encapsulated state**: `private init` for values fixed at creation (`Id`, owner/FK ids, `CreatedAt`), `private set` for state that changes later. No public setters.
+- **`Id = Guid.CreateVersion7()`** in the factory (time-ordered, index-friendly) — never `Guid.NewGuid()`, never passed in.
+- **Creation date is an optional last parameter** `DateTime? createdAt = null`, defaulting to `DateTime.UtcNow`. Handlers pass `dateTimeProvider.UtcNow` so it stays testable.
+- **Dates are always UTC.** Entities assign dates as-is and never convert them: callers pass UTC (`dateTimeProvider.UtcNow`), and dates from requests are converted to UTC by the endpoint (offset dates) or rejected by the slice's validator (no timezone). No EF value converter — Npgsql rejects non-UTC values for `timestamptz`, so a slip fails loudly.
+- The factory raises the `{Entity}CreatedDomainEvent`; state changes go through intention-revealing methods (`Rename`, `Complete`, …) that mutate and raise their event. A method guarding a business rule returns `Result` (e.g. `TodoItem.Complete` → `TodoItemErrors.AlreadyCompleted`).
+- Copy incoming collections (`Labels = labels is null ? [] : [.. labels]`); collections default to `= [];`.
+- Navigations (rare — prefer FK ids) are getter-only (`public User User { get; }`); EF fills the backing field.
 
 2. **Error catalog** — `src/Web.Api/Features/{Entity}/{Entity}Errors.cs`
 

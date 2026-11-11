@@ -7,6 +7,8 @@ public sealed class TodosTests(IntegrationTestWebAppFactory factory) : BaseInteg
 {
     private sealed record TodoDto(Guid Id, Guid UserId, string Description, bool IsCompleted);
 
+    private sealed record TodoWithDueDateDto(Guid Id, DateTimeOffset? DueDate);
+
     [Fact]
     public async Task GetTodo_Should_ReturnUnauthorized_WhenTokenIsMissing()
     {
@@ -48,6 +50,59 @@ public sealed class TodosTests(IntegrationTestWebAppFactory factory) : BaseInteg
         todo.UserId.ShouldBe(userId);
         todo.Description.ShouldBe("Integration test todo");
         todo.IsCompleted.ShouldBeFalse();
+    }
+
+    [Fact]
+    public async Task CreateTodo_Should_StoreDueDateAsUtc_WhenSentWithOffset()
+    {
+        // Arrange
+        (Guid userId, AccessTokens tokens) = await RegisterAndLoginAsync();
+        Authenticate(tokens.AccessToken);
+
+        int year = DateTime.UtcNow.Year + 1;
+        var createRequest = new
+        {
+            userId,
+            description = "Todo with offset due date",
+            dueDate = $"{year}-06-01T10:00:00+02:00",
+            labels = Array.Empty<string>(),
+            priority = 1
+        };
+
+        // Act
+        HttpResponseMessage createResponse = await HttpClient.PostAsJsonAsync("todos", createRequest);
+
+        // Assert
+        createResponse.EnsureSuccessStatusCode();
+        Guid todoId = await createResponse.Content.ReadFromJsonAsync<Guid>();
+
+        HttpResponseMessage getResponse = await HttpClient.GetAsync($"todos/{todoId}");
+        getResponse.EnsureSuccessStatusCode();
+        TodoWithDueDateDto? todo = await getResponse.Content.ReadFromJsonAsync<TodoWithDueDateDto>();
+        todo!.DueDate.ShouldBe(new DateTimeOffset(year, 6, 1, 8, 0, 0, TimeSpan.Zero));
+    }
+
+    [Fact]
+    public async Task CreateTodo_Should_ReturnBadRequest_WhenDueDateHasNoTimezone()
+    {
+        // Arrange
+        (Guid userId, AccessTokens tokens) = await RegisterAndLoginAsync();
+        Authenticate(tokens.AccessToken);
+
+        var createRequest = new
+        {
+            userId,
+            description = "Todo with ambiguous due date",
+            dueDate = $"{DateTime.UtcNow.Year + 1}-06-01T10:00:00",
+            labels = Array.Empty<string>(),
+            priority = 1
+        };
+
+        // Act
+        HttpResponseMessage response = await HttpClient.PostAsJsonAsync("todos", createRequest);
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
     }
 
     [Fact]

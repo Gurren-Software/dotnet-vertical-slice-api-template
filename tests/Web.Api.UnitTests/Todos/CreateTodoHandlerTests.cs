@@ -12,9 +12,9 @@ public sealed class CreateTodoHandlerTests : BaseHandlerTest
 {
     private static readonly Guid UserId = Guid.NewGuid();
 
-    private static CreateTodo.Command Command => new()
+    private static CreateTodo.Command CreateCommand(Guid userId) => new()
     {
-        UserId = UserId,
+        UserId = userId,
         Description = "Write unit tests",
         Priority = Priority.Medium,
         Labels = ["work"]
@@ -30,7 +30,7 @@ public sealed class CreateTodoHandlerTests : BaseHandlerTest
 
         var handler = new CreateTodo.Handler(context, dateTimeProvider, userContext);
 
-        Result<Guid> result = await handler.Handle(Command, CancellationToken.None);
+        Result<Guid> result = await handler.Handle(CreateCommand(UserId), CancellationToken.None);
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe(UserErrors.Unauthorized());
@@ -46,7 +46,7 @@ public sealed class CreateTodoHandlerTests : BaseHandlerTest
 
         var handler = new CreateTodo.Handler(context, dateTimeProvider, userContext);
 
-        Result<Guid> result = await handler.Handle(Command, CancellationToken.None);
+        Result<Guid> result = await handler.Handle(CreateCommand(UserId), CancellationToken.None);
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe(UserErrors.NotFound(UserId));
@@ -57,29 +57,23 @@ public sealed class CreateTodoHandlerTests : BaseHandlerTest
     {
         IDomainEventsDispatcher dispatcher = Substitute.For<IDomainEventsDispatcher>();
         await using ApplicationDbContext context = CreateDbContext(dispatcher);
-        context.Users.Add(new User
-        {
-            Id = UserId,
-            Email = "test@example.com",
-            FirstName = "Test",
-            LastName = "User",
-            PasswordHash = "hash"
-        });
+        var user = User.Create("test@example.com", "Test", "User", "hash");
+        context.Users.Add(user);
         await context.SaveChangesAsync();
 
         IUserContext userContext = Substitute.For<IUserContext>();
-        userContext.UserId.Returns(UserId);
+        userContext.UserId.Returns(user.Id);
         IDateTimeProvider dateTimeProvider = Substitute.For<IDateTimeProvider>();
         dateTimeProvider.UtcNow.Returns(DateTime.UtcNow);
 
         var handler = new CreateTodo.Handler(context, dateTimeProvider, userContext);
 
-        Result<Guid> result = await handler.Handle(Command, CancellationToken.None);
+        Result<Guid> result = await handler.Handle(CreateCommand(user.Id), CancellationToken.None);
 
         result.IsSuccess.ShouldBeTrue();
         TodoItem todoItem = await context.TodoItems.SingleAsync(t => t.Id == result.Value);
         todoItem.Description.ShouldBe("Write unit tests");
-        todoItem.UserId.ShouldBe(UserId);
+        todoItem.UserId.ShouldBe(user.Id);
         await dispatcher.Received().DispatchAsync(
             Arg.Is<IEnumerable<IDomainEvent>>(events => events.Any(e => e is TodoItemCreatedDomainEvent)),
             Arg.Any<CancellationToken>());

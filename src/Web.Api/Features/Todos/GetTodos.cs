@@ -1,5 +1,4 @@
 using System.Linq.Expressions;
-using Microsoft.EntityFrameworkCore;
 using Web.Api.Authentication;
 using Web.Api.Common;
 using Web.Api.Common.Endpoints;

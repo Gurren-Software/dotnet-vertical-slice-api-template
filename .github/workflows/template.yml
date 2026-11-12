@@ -51,6 +51,7 @@ jobs:
         working-directory: ${{ runner.temp }}/SmokeTest
         run: |
           dotnet tool install --global dotnet-ef
+          dotnet restore SmokeTest.slnx
           dotnet ef migrations add Initial --project src/SmokeTest.Api --startup-project src/SmokeTest.Api --output-dir Database/Migrations
 
       - name: Build and test

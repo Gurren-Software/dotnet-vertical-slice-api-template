@@ -1,5 +1,5 @@
 using System.Reflection;
-using Web.Api;
+using VerticalSlice.Api;
 
 namespace ArchitectureTests;
 

@@ -1,0 +1,79 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "Gurren Software",
+  "classifications": [ "Web", "API", "Vertical Slice" ],
+  "identity": "GurrenSoftware.Templates.VerticalSliceApi",
+  "name": "Gurren Vertical Slice API",
+  "shortName": "gurren-vsa",
+  "description": "ASP.NET Core minimal API on .NET 10 with Vertical Slice Architecture, PostgreSQL, JWT auth, OpenTelemetry, Testcontainers, GitHub Actions and Claude Code skills.",
+  "tags": {
+    "language": "C#",
+    "type": "solution"
+  },
+  "sourceName": "VerticalSlice",
+  "preferNameDirectory": true,
+  "guids": [
+    "7af30323-108a-4923-bd46-e13b7648968c",
+    "34bb3069-d5d0-4046-acad-a2025ed7678f"
+  ],
+  "forms": {
+    "kebab": {
+      "identifier": "kebabCase"
+    }
+  },
+  "symbols": {
+    "sample": {
+      "type": "parameter",
+      "datatype": "bool",
+      "defaultValue": "false",
+      "description": "Include the Todos sample feature, its tests and the sample migrations."
+    },
+    "kebabName": {
+      "type": "derived",
+      "valueSource": "name",
+      "valueTransform": "kebab",
+      "replaces": "vertical-slice",
+      "description": "Lowercase name used for the database, the Docker image and the compose project."
+    }
+  },
+  "sources": [
+    {
+      "modifiers": [
+        {
+          "exclude": [
+            ".git/**",
+            ".idea/**",
+            ".vs/**",
+            ".containers/**",
+            "templatepack/**",
+            ".github/workflows/template.yml",
+            ".claude/skills/bootstrap/**"
+          ]
+        },
+        {
+          "condition": "(!sample)",
+          "exclude": [
+            "src/VerticalSlice.Api/Features/Todos/**",
+            "src/VerticalSlice.Api/Database/Configurations/TodoItemConfiguration.cs",
+            "src/VerticalSlice.Api/Database/Migrations/**",
+            "tests/VerticalSlice.Api.UnitTests/Todos/**",
+            "tests/IntegrationTests/Todos/**"
+          ]
+        }
+      ]
+    }
+  ],
+  "postActions": [
+    {
+      "condition": "(!sample)",
+      "description": "Create the initial EF Core migration.",
+      "actionId": "AC1156F7-BB77-4DB8-B28F-24EEBCCA1E5C",
+      "manualInstructions": [
+        {
+          "text": "Create the first migration before running the app or the tests: dotnet ef migrations add Initial --project src/<YourName>.Api --startup-project src/<YourName>.Api --output-dir Database/Migrations"
+        }
+      ],
+      "continueOnError": true
+    }
+  ]
+}

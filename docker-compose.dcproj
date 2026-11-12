@@ -6,8 +6,8 @@
     <ProjectGuid>34bb3069-d5d0-4046-acad-a2025ed7678f</ProjectGuid>
     <DockerLaunchAction>LaunchBrowser</DockerLaunchAction>
     <DockerServiceUrl>{Scheme}://localhost:{ServicePort}/scalar/v1</DockerServiceUrl>
-    <DockerServiceName>web.api</DockerServiceName>
-    <DockerComposeProjectName>clean-architecture</DockerComposeProjectName>
+    <DockerServiceName>api</DockerServiceName>
+    <DockerComposeProjectName>vertical-slice</DockerComposeProjectName>
   </PropertyGroup>
   <ItemGroup>
     <None Include="docker-compose.override.yml">

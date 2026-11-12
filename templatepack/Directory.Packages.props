@@ -1,0 +1,3 @@
+<Project>
+  <!-- Stops the root central package management from applying to the pack project. -->
+</Project>

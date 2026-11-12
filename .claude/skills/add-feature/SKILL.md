@@ -6,11 +6,11 @@ argument-hint: <feature description, e.g. "archive a todo item" or "get todos du
 
 # Add a Feature (Vertical Slice)
 
-Scaffold a full use case following this template's conventions: a single self-contained file under `Features/{Entity}/` that holds the command/query, its custom handler, its validator, and its minimal-API endpoint. No MediatR — this codebase uses its own `ICommand`/`IQuery` abstractions (`Web.Api.Common.Messaging`) with Scrutor-registered handlers and decorators.
+Scaffold a full use case following this template's conventions: a single self-contained file under `Features/{Entity}/` that holds the command/query, its custom handler, its validator, and its minimal-API endpoint. No MediatR — this codebase uses its own `ICommand`/`IQuery` abstractions (`VerticalSlice.Api.Common.Messaging`) with Scrutor-registered handlers and decorators.
 
 ## The one-file rule
 
-A use case is **one file**: `src/Web.Api/Features/{Entity}/{UseCase}.cs`, namespace `Web.Api.Features.{Entity}`. That file is a `public static class {UseCase}` whose nested members are the whole slice:
+A use case is **one file**: `src/VerticalSlice.Api/Features/{Entity}/{UseCase}.cs`, namespace `VerticalSlice.Api.Features.{Entity}`. That file is a `public static class {UseCase}` whose nested members are the whole slice:
 
 ```csharp
 public static class ArchiveTodo
@@ -28,22 +28,22 @@ Everything for the slice lives here — there is no separate Application/Domain/
 
 1. **Classify the use case.** A state change is a **command**; a read is a **query**. Name the slice with the use-case verb + entity, e.g. `ArchiveTodo`, `GetOverdueTodos` — that name is the file, the folder-mate, and the static class.
 2. **Check the feature's domain types.** If the entity, its `{Entity}Errors` class, or a needed domain event doesn't exist in `Features/{Entity}/`, add it first (see the `add-entity` skill). Entities are built with `{Entity}.Create(...)` and changed through entity methods (properties are `private set`/`private init`); those factories/methods raise the domain events. Add the method to the entity if it's missing.
-3. **Create the slice file** at `src/Web.Api/Features/{Entity}/{UseCase}.cs` with the nested `Command`/`Query`, `Validator` (commands only), `Handler`, and `Endpoint`. Templates: [references/command-slice.md](references/command-slice.md), [references/query-slice.md](references/query-slice.md), and [references/endpoint.md](references/endpoint.md).
+3. **Create the slice file** at `src/VerticalSlice.Api/Features/{Entity}/{UseCase}.cs` with the nested `Command`/`Query`, `Validator` (commands only), `Handler`, and `Endpoint`. Templates: [references/command-slice.md](references/command-slice.md), [references/query-slice.md](references/query-slice.md), and [references/endpoint.md](references/endpoint.md).
 4. **Write tests** — handler unit tests, validator tests, and an integration test. Templates: [references/tests.md](references/tests.md).
 5. **Verify:** `dotnet build` then `dotnet test`. Everything must pass.
 
 ## Non-negotiable conventions
 
-- **File = use case.** One file per use case under `src/Web.Api/Features/{Entity}/` (e.g. `Features/Todos/ArchiveTodo.cs`), containing the whole slice as nested types of `public static class {UseCase}`.
-- **Handlers are `internal sealed`** with primary constructors, nested as `Handler`, implementing `ICommandHandler<Command>`, `ICommandHandler<Command, TResponse>`, or `IQueryHandler<Query, TResponse>` (from `Web.Api.Common.Messaging`).
+- **File = use case.** One file per use case under `src/VerticalSlice.Api/Features/{Entity}/` (e.g. `Features/Todos/ArchiveTodo.cs`), containing the whole slice as nested types of `public static class {UseCase}`.
+- **Handlers are `internal sealed`** with primary constructors, nested as `Handler`, implementing `ICommandHandler<Command>`, `ICommandHandler<Command, TResponse>`, or `IQueryHandler<Query, TResponse>` (from `VerticalSlice.Api.Common.Messaging`).
 - **No manual DI registration.** Handlers, validators, and endpoints are discovered by assembly scanning — Scrutor (`AssignableTo(ICommandHandler<,>)`), `AddValidatorsFromAssembly(includeInternalTypes: true)`, and `AddEndpoints`. Nested types are in `assembly.DefinedTypes`, so they are found automatically. Never wire up a new slice by hand.
-- **Return `Result` / `Result<T>`, never throw** for expected failures. Errors come from static factory methods on `{Entity}Errors` (in the feature folder) with codes like `"Todos.NotFound"`. `Result`, `Error`, `ErrorType` live in `Web.Api.Common`.
+- **Return `Result` / `Result<T>`, never throw** for expected failures. Errors come from static factory methods on `{Entity}Errors` (in the feature folder) with codes like `"Todos.NotFound"`. `Result`, `Error`, `ErrorType` live in `VerticalSlice.Api.Common`.
 - **Validation lives in the nested `Validator`** (FluentValidation). It runs automatically via `ValidationDecorator` — the handler never validates input shape itself. Queries have no validators (the decorator only wraps commands).
-- **Data access via `ApplicationDbContext` directly** (from `Web.Api.Database`). There is **no `IApplicationDbContext`** — inject the concrete `ApplicationDbContext` into the handler.
-- **Authorization check** in handlers that act on user-owned data: compare `IUserContext.UserId` (from `Web.Api.Authentication`) and return `UserErrors.Unauthorized()` on mismatch, or filter queries by `userContext.UserId`.
+- **Data access via `ApplicationDbContext` directly** (from `VerticalSlice.Api.Database`). There is **no `IApplicationDbContext`** — inject the concrete `ApplicationDbContext` into the handler.
+- **Authorization check** in handlers that act on user-owned data: compare `IUserContext.UserId` (from `VerticalSlice.Api.Authentication`) and return `UserErrors.Unauthorized()` on mismatch, or filter queries by `userContext.UserId`.
 - **Queries project directly to a nested `Response` DTO** with `.Select(...)` — never return domain entities. Cache hot reads with `HybridCache` using a `{Feature}CacheKeys` static class; invalidate in the commands that mutate the cached data.
 - **The nested `Endpoint`** implements `IEndpoint`, resolves the handler interface directly from DI, uses `result.Match(Results.Ok, CustomResults.Problem)` (or `Results.NoContent` for void commands), tags with the `Tags` class, and calls `.RequireAuthorization()`.
-- **No cross-feature coupling.** A slice may reference another feature's **domain types** (e.g. `Todos` uses `User`/`UserErrors` via `using Web.Api.Features.Users;`) and the shared `Common`/`Database`/`Authentication`/`Authorization` code. It must **never** reference another feature's `Command`/`Query`/`Handler`/`Validator`/`Endpoint`.
+- **No cross-feature coupling.** A slice may reference another feature's **domain types** (e.g. `Todos` uses `User`/`UserErrors` via `using VerticalSlice.Api.Features.Users;`) and the shared `Common`/`Database`/`Authentication`/`Authorization` code. It must **never** reference another feature's `Command`/`Query`/`Handler`/`Validator`/`Endpoint`.
 
 ## Naming reference
 

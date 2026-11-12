@@ -1,10 +1,9 @@
 services:
-  web-api:
-    image: ${DOCKER_REGISTRY-}webapi
-    container_name: web-api
+  api:
+    image: ${DOCKER_REGISTRY-}vertical-slice-api
     build:
       context: .
-      dockerfile: src/Web.Api/Dockerfile
+      dockerfile: src/VerticalSlice.Api/Dockerfile
     ports:
       - 5000:8080
       - 5001:8081
@@ -14,9 +13,8 @@ services:
 
   postgres:
     image: postgres:17
-    container_name: postgres
     environment:
-      - POSTGRES_DB=clean-architecture
+      - POSTGRES_DB=vertical-slice
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
     volumes:
@@ -28,7 +26,6 @@ services:
   # Collector, all bundled in one image. Open Grafana at http://localhost:3000.
   observability:
     image: grafana/otel-lgtm:0.29.1
-    container_name: observability
     ports:
       - 3000:3000   # Grafana
       - 4317:4317   # OTLP gRPC

@@ -6,17 +6,17 @@ argument-hint: <what the job does, e.g. "delete expired refresh tokens every hou
 
 # Add a Background Job
 
-Recurring work runs as a `BackgroundService` in `src/Web.Api/BackgroundJobs/`. A hosted service is a **singleton**, so scoped services (`ApplicationDbContext`, handlers) must be resolved inside a scope created per iteration.
+Recurring work runs as a `BackgroundService` in `src/VerticalSlice.Api/BackgroundJobs/`. A hosted service is a **singleton**, so scoped services (`ApplicationDbContext`, handlers) must be resolved inside a scope created per iteration.
 
 ## Files to create/modify
 
-1. **The job** — `src/Web.Api/BackgroundJobs/{Name}BackgroundService.cs`
+1. **The job** — `src/VerticalSlice.Api/BackgroundJobs/{Name}BackgroundService.cs`
 
 ```csharp
 using Microsoft.EntityFrameworkCore;
-using Web.Api.Database;
+using VerticalSlice.Api.Database;
 
-namespace Web.Api.BackgroundJobs;
+namespace VerticalSlice.Api.BackgroundJobs;
 
 internal sealed class ExpiredRefreshTokensCleanupService(
     IServiceScopeFactory scopeFactory,
@@ -48,7 +48,7 @@ internal sealed class ExpiredRefreshTokensCleanupService(
 }
 ```
 
-2. **Registration** — in `src/Web.Api/DependencyInjection.cs` (e.g. inside `AddServices`, or a small `AddBackgroundJobs` helper wired into `AddInfrastructure`):
+2. **Registration** — in `src/VerticalSlice.Api/DependencyInjection.cs` (e.g. inside `AddServices`, or a small `AddBackgroundJobs` helper wired into `AddInfrastructure`):
 
 ```csharp
 services.AddHostedService<ExpiredRefreshTokensCleanupService>();
@@ -56,8 +56,8 @@ services.AddHostedService<ExpiredRefreshTokensCleanupService>();
 
 ## Rules
 
-- A hosted service is a singleton — **never** inject `ApplicationDbContext`, handlers, or other scoped/transient services directly. Resolve them from a per-iteration scope via `IServiceScopeFactory`. There is **no `IApplicationDbContext`** — resolve the concrete `ApplicationDbContext` (from `Web.Api.Database`).
+- A hosted service is a singleton — **never** inject `ApplicationDbContext`, handlers, or other scoped/transient services directly. Resolve them from a per-iteration scope via `IServiceScopeFactory`. There is **no `IApplicationDbContext`** — resolve the concrete `ApplicationDbContext` (from `VerticalSlice.Api.Database`).
 - Wrap each iteration body in try/catch so one failure doesn't stop the loop; log with `ILogger`.
 - Use `PeriodicTimer` for the schedule and always honor `stoppingToken`.
-- If the work is really a use case, prefer resolving and invoking an existing command/handler (`ICommandHandler<...>` from `Web.Api.Common.Messaging`) inside the scope instead of duplicating logic.
+- If the work is really a use case, prefer resolving and invoking an existing command/handler (`ICommandHandler<...>` from `VerticalSlice.Api.Common.Messaging`) inside the scope instead of duplicating logic.
 - Build + run the tests when done.

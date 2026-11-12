@@ -3,15 +3,15 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Testcontainers.PostgreSql;
-using Web.Api;
-using Web.Api.Database;
+using VerticalSlice.Api;
+using VerticalSlice.Api.Database;
 
 namespace IntegrationTests;
 
 public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
     private readonly PostgreSqlContainer _dbContainer = new PostgreSqlBuilder("postgres:17")
-        .WithDatabase("clean-architecture")
+        .WithDatabase("vertical-slice")
         .WithUsername("postgres")
         .WithPassword("postgres")
         .Build();
@@ -22,7 +22,7 @@ public sealed class IntegrationTestWebAppFactory : WebApplicationFactory<Program
 
         // Provide deterministic JWT settings so tokens can be issued and validated in tests.
         builder.UseSetting("Jwt:Secret", "super-duper-secret-value-that-should-be-in-user-secrets");
-        builder.UseSetting("Jwt:Issuer", "clean-architecture");
+        builder.UseSetting("Jwt:Issuer", "vertical-slice");
         builder.UseSetting("Jwt:Audience", "developers");
         builder.UseSetting("Jwt:ExpirationInMinutes", "60");
 

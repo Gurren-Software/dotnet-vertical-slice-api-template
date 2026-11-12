@@ -6,7 +6,7 @@ argument-hint: <migration name or a description of the model change, e.g. "Add_P
 
 # Add an EF Core Migration
 
-This is a single-project template, so `src/Web.Api` is **both** the migrations project and the startup project (it owns the model, the connection string, and DI).
+This is a single-project template, so `src/VerticalSlice.Api` is **both** the migrations project and the startup project (it owns the model, the connection string, and DI).
 
 ## Steps
 
@@ -15,22 +15,22 @@ This is a single-project template, so `src/Web.Api` is **both** the migrations p
 2. Create the migration from the repo root:
 
    ```
-   dotnet ef migrations add {Migration_Name} --project src/Web.Api --startup-project src/Web.Api
+   dotnet ef migrations add {Migration_Name} --project src/VerticalSlice.Api --startup-project src/VerticalSlice.Api
    ```
 
    Names are `PascalCase_With_Underscores` (e.g. `Add_Projects`, `Add_RefreshTokens`).
 
-3. Review the generated files in `src/Web.Api/Database/Migrations/` — check the `Up`/`Down`, snake_case table/column names, and that nothing unexpected was dropped.
+3. Review the generated files in `src/VerticalSlice.Api/Database/Migrations/` — check the `Up`/`Down`, snake_case table/column names, and that nothing unexpected was dropped.
 
-4. Apply it. In Development the app runs `ApplyMigrations()` on startup, so `dotnet run --project src/Web.Api` (with `docker compose up -d` running) applies it. To apply explicitly:
+4. Apply it. In Development the app runs `ApplyMigrations()` on startup, so `dotnet run --project src/VerticalSlice.Api` (with `docker compose up -d` running) applies it. To apply explicitly:
 
    ```
-   dotnet ef database update --project src/Web.Api --startup-project src/Web.Api
+   dotnet ef database update --project src/VerticalSlice.Api --startup-project src/VerticalSlice.Api
    ```
 
 ## Rules
 
 - Needs the EF tool: `dotnet tool install --global dotnet-ef` if `dotnet ef` is missing.
 - Never edit a migration that has already been applied/committed — add a new one.
-- To drop the last **unapplied** migration: `dotnet ef migrations remove --project src/Web.Api --startup-project src/Web.Api`.
+- To drop the last **unapplied** migration: `dotnet ef migrations remove --project src/VerticalSlice.Api --startup-project src/VerticalSlice.Api`.
 - Commit the migration together with the model change.

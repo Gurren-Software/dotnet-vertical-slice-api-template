@@ -1,7 +1,7 @@
 using NetArchTest.Rules;
 using Shouldly;
-using Web.Api.Common.Endpoints;
-using Web.Api.Common.Messaging;
+using VerticalSlice.Api.Common.Endpoints;
+using VerticalSlice.Api.Common.Messaging;
 
 namespace ArchitectureTests.Layers;
 

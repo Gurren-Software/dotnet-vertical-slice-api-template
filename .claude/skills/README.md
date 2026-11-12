@@ -9,10 +9,13 @@ A skill pack that teaches Claude Code the conventions of the Vertical Slice Arch
 | **add-feature** | `/add-feature archive a todo item` | Scaffolds a complete vertical slice in one file: nested command/query, handler, validator, endpoint, plus unit + validator + integration tests. |
 | **add-entity** | `/add-entity Project with a name and owner` | Adds a domain entity end to end: entity, error catalog, domain events, EF configuration, DbContext wiring, migration. |
 | **add-tests** | `/add-tests CreateTodo` | Backfills handler, validator, and integration tests for existing use cases. |
-| **add-migration** | `/add-migration Add_Projects` | Creates and applies an EF Core migration (single project — `src/Web.Api` is both migrations and startup project). |
+| **add-migration** | `/add-migration Add_Projects` | Creates and applies an EF Core migration (single project — `src/VerticalSlice.Api` is both migrations and startup project). |
 | **add-background-job** | `/add-background-job delete expired refresh tokens hourly` | Adds a scheduled `BackgroundService` that safely resolves scoped services per run. |
-| **bootstrap** | `/bootstrap Acme.Billing` | Renames the solution to your app and strips the sample Todos feature (keeps Users + auth). |
 | **vsa-review** | `/vsa-review` | Reviews pending changes against the template's conventions: one-file slices, slice isolation, error handling, security, caching, and test coverage. |
+
+<!--#if (false) -->
+Template repo only: **bootstrap** (`/bootstrap Acme.Billing`) renames the solution and strips the sample Todos feature when you clone the repo instead of running `dotnet new gurren-vsa`.
+<!--#endif -->
 
 You don't have to invoke them explicitly — once installed, Claude Code picks the right skill automatically when you say things like "add an endpoint to snooze a todo."
 
@@ -31,7 +34,6 @@ your-project/
         ├── add-tests/
         ├── add-migration/
         ├── add-background-job/
-        ├── bootstrap/
         └── vsa-review/
 ```
 

@@ -1,19 +1,19 @@
 # Query Slice Templates
 
-A query use case is **one file**: `src/Web.Api/Features/{Entity}/{UseCase}.cs`, namespace `Web.Api.Features.{Entity}`. Everything below is nested inside `public static class {UseCase}`. Queries are reads: no validator, no domain events, no `SaveChangesAsync`.
+A query use case is **one file**: `src/VerticalSlice.Api/Features/{Entity}/{UseCase}.cs`, namespace `VerticalSlice.Api.Features.{Entity}`. Everything below is nested inside `public static class {UseCase}`. Queries are reads: no validator, no domain events, no `SaveChangesAsync`.
 
 ## Full slice skeleton
 
 ```csharp
 using Microsoft.EntityFrameworkCore;
-using Web.Api.Authentication;
-using Web.Api.Common;
-using Web.Api.Common.Endpoints;
-using Web.Api.Common.Extensions;
-using Web.Api.Common.Messaging;
-using Web.Api.Database;
+using VerticalSlice.Api.Authentication;
+using VerticalSlice.Api.Common;
+using VerticalSlice.Api.Common.Endpoints;
+using VerticalSlice.Api.Common.Extensions;
+using VerticalSlice.Api.Common.Messaging;
+using VerticalSlice.Api.Database;
 
-namespace Web.Api.Features.Todos;
+namespace VerticalSlice.Api.Features.Todos;
 
 public static class GetOverdueTodos
 {
@@ -76,7 +76,7 @@ public sealed record Query : IQuery<List<Response>>;
 
 With parameters: `public sealed record Query(Guid TodoItemId) : IQuery<Response>;`
 
-`IQuery<T>` / `IQueryHandler<Q, T>` come from `Web.Api.Common.Messaging`.
+`IQuery<T>` / `IQueryHandler<Q, T>` come from `VerticalSlice.Api.Common.Messaging`.
 
 ## Response DTO
 
@@ -86,14 +86,14 @@ A nested `public sealed class Response` — flat, serialization-friendly, never 
 
 `internal sealed class Handler`, `ApplicationDbContext` injected directly (no `IApplicationDbContext`). Scope to the current user and project with `.Select` straight into the nested `Response`. For single-item queries, return `Result.Failure<Response>(TodoItemErrors.NotFound(id))` when nothing matches.
 
-`IUserContext` is in `Web.Api.Authentication`; `IDateTimeProvider`, `Result` in `Web.Api.Common`; `TodoItemErrors` in the feature namespace.
+`IUserContext` is in `VerticalSlice.Api.Authentication`; `IDateTimeProvider`, `Result` in `VerticalSlice.Api.Common`; `TodoItemErrors` in the feature namespace.
 
 ## Caching (optional, hot reads only)
 
 The cache-keys class is a feature-level helper (not a use case), so it is its own small file in the feature folder:
 
 ```csharp
-namespace Web.Api.Features.Todos;
+namespace VerticalSlice.Api.Features.Todos;
 
 internal static class TodoCacheKeys
 {

@@ -2,22 +2,22 @@
 
 Stack: xUnit + Shouldly + NSubstitute (unit), FluentValidation.TestHelper (validators), WebApplicationFactory + Testcontainers (integration). Every new use case gets all three. Because the slice is one static class, its members are referenced qualified: `CreateTodo.Command`, `new CreateTodo.Handler(...)`, `new CreateTodo.Validator()`.
 
-`GlobalUsings.cs` already imports `Xunit`, `NSubstitute`, and `Shouldly` — don't re-add those. `Result`/`Error` come from `Web.Api.Common`; the slice, entity, errors, and domain events from `Web.Api.Features.{Entity}`.
+`GlobalUsings.cs` already imports `Xunit`, `NSubstitute`, and `Shouldly` — don't re-add those. `Result`/`Error` come from `VerticalSlice.Api.Common`; the slice, entity, errors, and domain events from `VerticalSlice.Api.Features.{Entity}`.
 
 ## Handler unit tests
 
-`tests/Web.Api.UnitTests/{Feature}/{UseCase}HandlerTests.cs`. Inherit `BaseHandlerTest` — it provides `CreateDbContext()` (a fresh in-memory `ApplicationDbContext`) and `CreateCache()` (a real `HybridCache`). There is no `IApplicationDbContext`/`TestDbContext` in this template: handlers take the concrete `ApplicationDbContext`, so tests use it directly. Mock only interfaces (`IUserContext`, `IDateTimeProvider`) with NSubstitute.
+`tests/VerticalSlice.Api.UnitTests/{Feature}/{UseCase}HandlerTests.cs`. Inherit `BaseHandlerTest` — it provides `CreateDbContext()` (a fresh in-memory `ApplicationDbContext`) and `CreateCache()` (a real `HybridCache`). There is no `IApplicationDbContext`/`TestDbContext` in this template: handlers take the concrete `ApplicationDbContext`, so tests use it directly. Mock only interfaces (`IUserContext`, `IDateTimeProvider`) with NSubstitute.
 
 Cover: each failure path (one test per guard clause) and the happy path including persisted state and raised domain events.
 
 ```csharp
 using Microsoft.EntityFrameworkCore;
-using Web.Api.Authentication;
-using Web.Api.Common;
-using Web.Api.Database;
-using Web.Api.Features.Todos;
+using VerticalSlice.Api.Authentication;
+using VerticalSlice.Api.Common;
+using VerticalSlice.Api.Database;
+using VerticalSlice.Api.Features.Todos;
 
-namespace Web.Api.UnitTests.Todos;
+namespace VerticalSlice.Api.UnitTests.Todos;
 
 public sealed class ArchiveTodoHandlerTests : BaseHandlerTest
 {
@@ -81,11 +81,11 @@ Conventions:
 
 ## Validator tests
 
-`tests/Web.Api.UnitTests/{Feature}/{Feature}ValidatorsTests.cs` (extend the existing file if present). One class covers all validators of a feature; each validator is the slice's nested `Validator`.
+`tests/VerticalSlice.Api.UnitTests/{Feature}/{Feature}ValidatorsTests.cs` (extend the existing file if present). One class covers all validators of a feature; each validator is the slice's nested `Validator`.
 
 ```csharp
 using FluentValidation.TestHelper;
-using Web.Api.Features.Todos;
+using VerticalSlice.Api.Features.Todos;
 
 // ...
 private readonly CreateTodo.Validator _createValidator = new();

@@ -1,6 +1,6 @@
 # Endpoint Templates
 
-The endpoint is **not a separate file** — it is a nested `public sealed class Endpoint : IEndpoint` inside the slice's `public static class {UseCase}` (same file, `src/Web.Api/Features/{Entity}/{UseCase}.cs`). `IEndpoint`, `Tags`, and `.HasPermission(...)` come from `Web.Api.Common.Endpoints`; `CustomResults` from `Web.Api.Common`; the `.Match(...)` extension from `Web.Api.Common.Extensions`. Endpoints are auto-discovered by `AddEndpoints`/`MapEndpoints` (the scan reads `assembly.DefinedTypes`, which includes nested types) — no registration needed.
+The endpoint is **not a separate file** — it is a nested `public sealed class Endpoint : IEndpoint` inside the slice's `public static class {UseCase}` (same file, `src/VerticalSlice.Api/Features/{Entity}/{UseCase}.cs`). `IEndpoint`, `Tags`, and `.HasPermission(...)` come from `VerticalSlice.Api.Common.Endpoints`; `CustomResults` from `VerticalSlice.Api.Common`; the `.Match(...)` extension from `VerticalSlice.Api.Common.Extensions`. Endpoints are auto-discovered by `AddEndpoints`/`MapEndpoints` (the scan reads `assembly.DefinedTypes`, which includes nested types) — no registration needed.
 
 Because `Command`/`Query`/`Response` are siblings inside the same static class, the endpoint references them unqualified.
 
@@ -97,7 +97,7 @@ public sealed class Endpoint : IEndpoint
 
 - Routes are lowercase, plural, no leading slash: `todos`, `todos/{id:guid}`, `users/{userId:guid}/todos`. Route constraints (`:guid`) on all typed parameters.
 - The nested `Request` class exists only when there's a JSON body; it maps 1:1 to the `Command` inside the lambda (enum values arrive as `int` and are cast). When the input is a single route parameter, build the `Command` directly from it — no `Request`.
-- Resolve the handler interface (`ICommandHandler<...>` / `IQueryHandler<...>`, from `Web.Api.Common.Messaging`) directly as a lambda parameter — the decorated instance is injected.
+- Resolve the handler interface (`ICommandHandler<...>` / `IQueryHandler<...>`, from `VerticalSlice.Api.Common.Messaging`) directly as a lambda parameter — the decorated instance is injected.
 - Always end with `.WithTags(Tags.{Feature})` and `.RequireAuthorization()` (or `.HasPermission(Permissions.X)` where a permission constant exists). Add the feature constant to `Tags` (in `Common/Endpoints/`) if new.
 - Failures never get hand-rolled responses — `CustomResults.Problem` translates the `Error` to RFC 7807 ProblemDetails with the right status code.
 - The endpoint may reference another feature's domain types, but never another feature's `Command`/`Query`/`Handler`.

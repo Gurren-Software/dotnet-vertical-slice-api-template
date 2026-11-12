@@ -1,0 +1,99 @@
+name: Template
+
+# Template repo only: this file is excluded from projects generated with dotnet new gurren-vsa.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+      - dev
+  push:
+    tags:
+      - "v*"
+
+env:
+  DOTNET_VERSION: "10.x"
+  PACKAGE_ID: GurrenSoftware.Templates.VerticalSliceApi
+
+jobs:
+  smoke:
+    name: Generate, build and test (sample=${{ matrix.sample }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        sample: [false, true]
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Install the template from source
+        run: dotnet new install ./
+
+      - name: Generate a project
+        run: dotnet new gurren-vsa -n SmokeTest --sample ${{ matrix.sample }} -o ${{ runner.temp }}/SmokeTest
+
+      - name: Check the rename left no template names behind
+        working-directory: ${{ runner.temp }}/SmokeTest
+        run: |
+          if grep -rn "VerticalSlice\|vertical-slice" --exclude-dir=.git .; then
+            echo "Template names found in the generated project" && exit 1
+          fi
+
+      - name: Create the initial migration
+        if: ${{ !matrix.sample }}
+        working-directory: ${{ runner.temp }}/SmokeTest
+        run: |
+          dotnet tool install --global dotnet-ef
+          dotnet ef migrations add Initial --project src/SmokeTest.Api --startup-project src/SmokeTest.Api --output-dir Database/Migrations
+
+      - name: Build and test
+        working-directory: ${{ runner.temp }}/SmokeTest
+        run: |
+          dotnet build SmokeTest.slnx --configuration Release
+          dotnet test SmokeTest.slnx --configuration Release --no-build
+
+  pack:
+    name: Pack and publish
+    needs: smoke
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Resolve version
+        id: version
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            echo "value=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=0.0.0-ci.${{ github.run_number }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Pack
+        run: dotnet pack templatepack/TemplatePack.csproj --configuration Release -p:Version=${{ steps.version.outputs.value }} -o ./artifacts
+
+      - name: Install the packed template
+        run: dotnet new install ./artifacts/${{ env.PACKAGE_ID }}.${{ steps.version.outputs.value }}.nupkg
+
+      - name: Publish to GitHub Packages
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: >
+          dotnet nuget push ./artifacts/*.nupkg
+          --source https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
+          --api-key ${{ secrets.GITHUB_TOKEN }}
+          --skip-duplicate

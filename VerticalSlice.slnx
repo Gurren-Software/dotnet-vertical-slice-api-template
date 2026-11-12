@@ -5,10 +5,10 @@
     <File Path="Directory.Packages.props" />
   </Folder>
   <Folder Name="/src/">
-    <Project Path="src/Web.Api/Web.Api.csproj" />
+    <Project Path="src/VerticalSlice.Api/VerticalSlice.Api.csproj" />
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="tests/Web.Api.UnitTests/Web.Api.UnitTests.csproj" />
+    <Project Path="tests/VerticalSlice.Api.UnitTests/VerticalSlice.Api.UnitTests.csproj" />
     <Project Path="tests/ArchitectureTests/ArchitectureTests.csproj" />
     <Project Path="tests/IntegrationTests/IntegrationTests.csproj" />
   </Folder>

@@ -1,11 +1,11 @@
 <Project>
   <PropertyGroup>
 	<!--If you want to target .NET 8, uncomment the below line and adjust the Directory.Packages.props file.
-	You will also need to update the base images in src/Web.Api/Dockerfile from 10.0 to 8.0.-->
+	You will also need to update the base images in src/VerticalSlice.Api/Dockerfile from 10.0 to 8.0.-->
     <!--<TargetFramework>net8.0</TargetFramework>-->
 
 	<!--If you want to target .NET 9, uncomment the below line and adjust the Directory.Packages.props file.
-	You will also need to update the base images in src/Web.Api/Dockerfile from 10.0 to 9.0.-->
+	You will also need to update the base images in src/VerticalSlice.Api/Dockerfile from 10.0 to 9.0.-->
 	<!--<TargetFramework>net9.0</TargetFramework>-->
 
     <TargetFramework>net10.0</TargetFramework>

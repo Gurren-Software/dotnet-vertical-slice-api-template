@@ -6,16 +6,16 @@ argument-hint: <entity description, e.g. "Project with a name, owner, and list o
 
 # Add a Domain Entity
 
-Create a new entity and wire it through the single `Web.Api` project, following the `TodoItem` pattern. The entity and its domain types live with their feature; only the EF configuration and the `DbSet` live in `Database/`.
+Create a new entity and wire it through the single `VerticalSlice.Api` project, following the `TodoItem` pattern. The entity and its domain types live with their feature; only the EF configuration and the `DbSet` live in `Database/`.
 
 ## Files to create/modify
 
-1. **Entity** — `src/Web.Api/Features/{Entity}/{Entity}.cs`
+1. **Entity** — `src/VerticalSlice.Api/Features/{Entity}/{Entity}.cs`
 
 ```csharp
-using Web.Api.Common;
+using VerticalSlice.Api.Common;
 
-namespace Web.Api.Features.Projects;
+namespace VerticalSlice.Api.Features.Projects;
 
 public sealed class Project : Entity
 {
@@ -52,7 +52,7 @@ public sealed class Project : Entity
 }
 ```
 
-- `sealed class`, inherits `Entity` (from `Web.Api.Common` — gives it `DomainEvents` + `Raise(...)`).
+- `sealed class`, inherits `Entity` (from `VerticalSlice.Api.Common` — gives it `DomainEvents` + `Raise(...)`).
 - **Construction only through a `public static {Entity} Create(...)` factory** plus a `private` parameterless constructor (for EF Core). Never `new {Entity} { ... }` outside the entity.
 - **Encapsulated state**: `private init` for values fixed at creation (`Id`, owner/FK ids, `CreatedAt`), `private set` for state that changes later. No public setters.
 - **`Id = Guid.CreateVersion7()`** in the factory (time-ordered, index-friendly) — never `Guid.NewGuid()`, never passed in.
@@ -62,12 +62,12 @@ public sealed class Project : Entity
 - Copy incoming collections (`Labels = labels is null ? [] : [.. labels]`); collections default to `= [];`.
 - Navigations (rare — prefer FK ids) are getter-only (`public User User { get; }`); EF fills the backing field.
 
-2. **Error catalog** — `src/Web.Api/Features/{Entity}/{Entity}Errors.cs`
+2. **Error catalog** — `src/VerticalSlice.Api/Features/{Entity}/{Entity}Errors.cs`
 
 ```csharp
-using Web.Api.Common;
+using VerticalSlice.Api.Common;
 
-namespace Web.Api.Features.Projects;
+namespace VerticalSlice.Api.Features.Projects;
 
 public static class ProjectErrors
 {
@@ -77,29 +77,29 @@ public static class ProjectErrors
 }
 ```
 
-Codes are `"{FeaturePlural}.{Reason}"`. Pick the factory by semantics: `Error.NotFound` (404), `Error.Conflict` (409), `Error.Problem` (400), `Error.Failure` (500). `Error`/`ErrorType` are in `Web.Api.Common`.
+Codes are `"{FeaturePlural}.{Reason}"`. Pick the factory by semantics: `Error.NotFound` (404), `Error.Conflict` (409), `Error.Problem` (400), `Error.Failure` (500). `Error`/`ErrorType` are in `VerticalSlice.Api.Common`.
 
-3. **Domain events** — one record per file, `src/Web.Api/Features/{Entity}/{Entity}{PastTenseVerb}DomainEvent.cs`
+3. **Domain events** — one record per file, `src/VerticalSlice.Api/Features/{Entity}/{Entity}{PastTenseVerb}DomainEvent.cs`
 
 ```csharp
-using Web.Api.Common;
+using VerticalSlice.Api.Common;
 
-namespace Web.Api.Features.Projects;
+namespace VerticalSlice.Api.Features.Projects;
 
 public sealed record ProjectCreatedDomainEvent(Guid ProjectId) : IDomainEvent;
 ```
 
-Create at minimum the `Created` event; add others as commands need them. Events carry ids, not entities. `IDomainEvent` is in `Web.Api.Common`.
+Create at minimum the `Created` event; add others as commands need them. Events carry ids, not entities. `IDomainEvent` is in `VerticalSlice.Api.Common`.
 
-4. **EF configuration** — `src/Web.Api/Database/Configurations/{Entity}Configuration.cs`
+4. **EF configuration** — `src/VerticalSlice.Api/Database/Configurations/{Entity}Configuration.cs`
 
 ```csharp
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Web.Api.Features.Projects;
-using Web.Api.Features.Users;
+using VerticalSlice.Api.Features.Projects;
+using VerticalSlice.Api.Features.Users;
 
-namespace Web.Api.Database.Configurations;
+namespace VerticalSlice.Api.Database.Configurations;
 
 internal sealed class ProjectConfiguration : IEntityTypeConfiguration<Project>
 {
@@ -114,12 +114,12 @@ internal sealed class ProjectConfiguration : IEntityTypeConfiguration<Project>
 
 Relationships are configured shadow-style (`HasOne<User>().WithMany()`) — entities hold foreign-key ids, not navigation properties. Configurations are picked up automatically by `ApplyConfigurationsFromAssembly` in `ApplicationDbContext`. Referencing another feature's entity here (e.g. `User`) is fine — it's a domain-type reference, not a cross-slice handler dependency.
 
-5. **DbContext wiring** — add `DbSet<{Entity}> {Plural}` to `src/Web.Api/Database/ApplicationDbContext.cs`. This is the **only** place a `DbSet` is declared — there is no `IApplicationDbContext` in this template. Handlers and unit tests use the concrete `ApplicationDbContext`, so the new set is available everywhere automatically.
+5. **DbContext wiring** — add `DbSet<{Entity}> {Plural}` to `src/VerticalSlice.Api/Database/ApplicationDbContext.cs`. This is the **only** place a `DbSet` is declared — there is no `IApplicationDbContext` in this template. Handlers and unit tests use the concrete `ApplicationDbContext`, so the new set is available everywhere automatically.
 
 6. **Migration** — from the repo root (single project, so it's both `--project` and `--startup-project`):
 
 ```
-dotnet ef migrations add Add_{Plural} --project src/Web.Api --startup-project src/Web.Api
+dotnet ef migrations add Add_{Plural} --project src/VerticalSlice.Api --startup-project src/VerticalSlice.Api
 ```
 
 Migration names are `PascalCase_With_Underscores` (see `Add_RefreshTokens`).
@@ -127,7 +127,7 @@ Migration names are `PascalCase_With_Underscores` (see `Add_RefreshTokens`).
 ## Rules
 
 - The entity is a plain domain type in its feature folder — no EF attributes, no persistence concerns on it. Keys, conversions, and relationships live exclusively in the `Database/Configurations/` configuration.
-- Entity, errors, and domain events go in `Features/{Entity}/` (namespace `Web.Api.Features.{Entity}`); the EF configuration goes in `Database/Configurations/`; the `DbSet` on `ApplicationDbContext`.
+- Entity, errors, and domain events go in `Features/{Entity}/` (namespace `VerticalSlice.Api.Features.{Entity}`); the EF configuration goes in `Database/Configurations/`; the `DbSet` on `ApplicationDbContext`.
 - Domain types are shareable across features (a slice in another feature may reference this entity), but never reference another feature's `Command`/`Handler`.
 - Run `dotnet build` and `dotnet test` when done.
 - If the user also wants use cases for the entity, continue with the `add-feature` skill.

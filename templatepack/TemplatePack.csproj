@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Packs the repository as a dotnet new template. Run: dotnet pack templatepack/TemplatePack.csproj -->
+  <PropertyGroup>
+    <PackageType>Template</PackageType>
+    <PackageId>GurrenSoftware.Templates.VerticalSliceApi</PackageId>
+    <Version>1.0.0</Version>
+    <Title>Gurren Vertical Slice API template</Title>
+    <Authors>Gurren Software</Authors>
+    <Description>dotnet new gurren-vsa: ASP.NET Core minimal API on .NET 10 with Vertical Slice Architecture, PostgreSQL, JWT auth, OpenTelemetry, Testcontainers, GitHub Actions and Claude Code skills.</Description>
+    <PackageTags>dotnet-new;templates;vertical-slice;minimal-api</PackageTags>
+    <RepositoryUrl>https://github.com/Gurren-Software/dotnet-vertical-slice-api-template</RepositoryUrl>
+
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <IncludeContentInPack>true</IncludeContentInPack>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <ContentTargetFolders>content</ContentTargetFolders>
+    <NoDefaultExcludes>true</NoDefaultExcludes>
+    <EnableDefaultItems>false</EnableDefaultItems>
+    <NoWarn>$(NoWarn);NU5110;NU5111;NU5128</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="../**/*"
+             Exclude="../.git/**;../templatepack/**;../**/bin/**;../**/obj/**;../.idea/**;../.vs/**;../.containers/**"
+             PackagePath="content/vertical-slice-api/%(RecursiveDir)" />
+  </ItemGroup>
+
+</Project>

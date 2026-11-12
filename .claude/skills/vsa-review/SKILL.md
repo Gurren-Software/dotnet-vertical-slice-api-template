@@ -11,9 +11,9 @@ Review the given scope (default: `git diff` + untracked files) against this temp
 ## Checklist
 
 ### Slice structure (violations are blockers)
-- One use case = one file: `src/Web.Api/Features/{Entity}/{UseCase}.cs`, namespace `Web.Api.Features.{Entity}`, containing a `public static class {UseCase}`.
+- One use case = one file: `src/VerticalSlice.Api/Features/{Entity}/{UseCase}.cs`, namespace `VerticalSlice.Api.Features.{Entity}`, containing a `public static class {UseCase}`.
 - The slice is fully nested: `Command`/`Query`, `Validator` (commands only), `Handler`, and `Endpoint` are all nested inside that static class. No separate Application/Domain/Infrastructure project, no separate `Endpoints/` folder.
-- `Handler` is `internal sealed` with a primary constructor, implementing the custom `ICommandHandler<>` / `IQueryHandler<>` (from `Web.Api.Common.Messaging`) — no MediatR.
+- `Handler` is `internal sealed` with a primary constructor, implementing the custom `ICommandHandler<>` / `IQueryHandler<>` (from `VerticalSlice.Api.Common.Messaging`) — no MediatR.
 - Response DTOs are the slice's nested `Response`; queries project with `.Select(...)` and never return domain entities.
 
 ### Slice isolation (blockers)
@@ -21,7 +21,7 @@ Review the given scope (default: `git diff` + untracked files) against this temp
 - No manual DI registration for handlers/validators/endpoints — they are discovered by Scrutor scanning, `AddValidatorsFromAssembly(includeInternalTypes: true)`, and `AddEndpoints`. Flag anything wiring a slice up by hand.
 
 ### Data access
-- Handlers inject the concrete `ApplicationDbContext` (from `Web.Api.Database`) directly. There is **no `IApplicationDbContext`** — flag any reference to it.
+- Handlers inject the concrete `ApplicationDbContext` (from `VerticalSlice.Api.Database`) directly. There is **no `IApplicationDbContext`** — flag any reference to it.
 - Persistence details (keys, conversions, relationships) live in `IEntityTypeConfiguration<>` classes under `Database/Configurations/`, not on entities. Entities are plain domain types in `Features/{Entity}/`.
 
 ### Entities
@@ -31,7 +31,7 @@ Review the given scope (default: `git diff` + untracked files) against this temp
 - Creation date is an optional `DateTime? createdAt = null` factory parameter defaulting to `DateTime.UtcNow`; handlers pass `dateTimeProvider.UtcNow`.
 
 ### Error handling
-- Expected failures return `Result` / `Result<T>` (from `Web.Api.Common`) — no exceptions for control flow, no try/catch around business rules.
+- Expected failures return `Result` / `Result<T>` (from `VerticalSlice.Api.Common`) — no exceptions for control flow, no try/catch around business rules.
 - Errors come from static `{Entity}Errors` factories with `"{Feature}.{Reason}"` codes and the semantically correct type (`NotFound` / `Conflict` / `Problem` / `Failure`).
 - Endpoints translate failures only via `result.Match(Results.Ok|NoContent, CustomResults.Problem)`.
 

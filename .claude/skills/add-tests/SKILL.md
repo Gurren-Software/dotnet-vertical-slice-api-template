@@ -10,8 +10,8 @@ Backfill the three test types this template expects for every slice. Read the ta
 
 ## Workflow
 
-1. **Locate the slice.** Open `src/Web.Api/Features/{Entity}/{UseCase}.cs`. List every distinct outcome from the nested `Handler`: each guard clause (`return Result.Failure(...)`) and the happy path.
-2. **Check what already exists** in `tests/Web.Api.UnitTests/{Feature}/` and `tests/IntegrationTests/{Feature}/` — extend existing classes, don't duplicate.
+1. **Locate the slice.** Open `src/VerticalSlice.Api/Features/{Entity}/{UseCase}.cs`. List every distinct outcome from the nested `Handler`: each guard clause (`return Result.Failure(...)`) and the happy path.
+2. **Check what already exists** in `tests/VerticalSlice.Api.UnitTests/{Feature}/` and `tests/IntegrationTests/{Feature}/` — extend existing classes, don't duplicate.
 3. **Write handler unit tests** — one test per failure path plus one happy path asserting persisted state and raised domain events.
 4. **Write validator tests** (commands only) — one failing test per rule plus one fully-valid command.
 5. **Write integration tests** — happy path over real HTTP with state asserted via a follow-up GET; error translation (404/409/400) where the handler has failure paths; 401 without a token if the route family is new.
@@ -19,9 +19,9 @@ Backfill the three test types this template expects for every slice. Read the ta
 
 ## Conventions
 
-- **Frameworks:** xUnit + Shouldly + NSubstitute; `FluentValidation.TestHelper` for validators. Global usings already cover `Xunit`, `NSubstitute`, `Shouldly`. Add `using Web.Api.Common;` for `Result`/`Error` and `using Web.Api.Features.{Entity};` for the slice, entity, errors, and domain events.
+- **Frameworks:** xUnit + Shouldly + NSubstitute; `FluentValidation.TestHelper` for validators. Global usings already cover `Xunit`, `NSubstitute`, `Shouldly`. Add `using VerticalSlice.Api.Common;` for `Result`/`Error` and `using VerticalSlice.Api.Features.{Entity};` for the slice, entity, errors, and domain events.
 - **Reference slice members qualified:** `CreateTodo.Command`, `new CreateTodo.Handler(...)`, `new CreateTodo.Validator()` — they are nested in the `public static class {UseCase}`.
-- **Unit test base:** inherit `BaseHandlerTest`; use `CreateDbContext()` for a fresh in-memory `ApplicationDbContext` (from `Web.Api.Database`) and `CreateCache()` for a real `HybridCache`. There is no `IApplicationDbContext`/`TestDbContext` — the handler takes the concrete `ApplicationDbContext`, so use it directly. Substitute only interfaces (`IUserContext`, `IDateTimeProvider`, `IPasswordHasher`, `ITokenProvider`) — never mock the DbContext.
+- **Unit test base:** inherit `BaseHandlerTest`; use `CreateDbContext()` for a fresh in-memory `ApplicationDbContext` (from `VerticalSlice.Api.Database`) and `CreateCache()` for a real `HybridCache`. There is no `IApplicationDbContext`/`TestDbContext` — the handler takes the concrete `ApplicationDbContext`, so use it directly. Substitute only interfaces (`IUserContext`, `IDateTimeProvider`, `IPasswordHasher`, `ITokenProvider`) — never mock the DbContext.
 - **Integration test base:** inherit `BaseIntegrationTest(factory)` with the `IntegrationTestWebAppFactory` collection fixture; use `RegisterAndLoginAsync()` + `Authenticate(token)` for authenticated calls. Define private response DTO records inside the test class (see `TodosTests.TodoDto`) — integration tests go through HTTP and don't reference the slice types.
 - **Naming:** classes `{UseCase}HandlerTests` / `{Feature}ValidatorsTests` / `{Feature}Tests`; methods `Handle_Should_{Outcome}_When{Condition}` (unit) or `{Action}_Should_{Outcome}[_When{Condition}]` (integration).
 - **Structure:** `// Arrange` / `// Act` / `// Assert` comments in every test.

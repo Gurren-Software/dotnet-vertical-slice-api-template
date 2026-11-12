@@ -1,20 +1,20 @@
 # Command Slice Templates
 
-A command use case is **one file**: `src/Web.Api/Features/{Entity}/{UseCase}.cs`, namespace `Web.Api.Features.{Entity}`. Everything below is nested inside `public static class {UseCase}`. Replace `{Entity}` (feature folder, plural, e.g. `Todos`), `{UseCase}` (e.g. `ArchiveTodo`), and the domain type names throughout.
+A command use case is **one file**: `src/VerticalSlice.Api/Features/{Entity}/{UseCase}.cs`, namespace `VerticalSlice.Api.Features.{Entity}`. Everything below is nested inside `public static class {UseCase}`. Replace `{Entity}` (feature folder, plural, e.g. `Todos`), `{UseCase}` (e.g. `ArchiveTodo`), and the domain type names throughout.
 
 ## Full slice skeleton
 
 ```csharp
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
-using Web.Api.Authentication;
-using Web.Api.Common;
-using Web.Api.Common.Endpoints;
-using Web.Api.Common.Extensions;
-using Web.Api.Common.Messaging;
-using Web.Api.Database;
+using VerticalSlice.Api.Authentication;
+using VerticalSlice.Api.Common;
+using VerticalSlice.Api.Common.Endpoints;
+using VerticalSlice.Api.Common.Extensions;
+using VerticalSlice.Api.Common.Messaging;
+using VerticalSlice.Api.Database;
 
-namespace Web.Api.Features.Todos;
+namespace VerticalSlice.Api.Features.Todos;
 
 public static class ArchiveTodo
 {
@@ -87,7 +87,7 @@ public sealed class Command : ICommand<Guid>
 
 - `ICommand` → handler returns `Result` (endpoint responds `204 NoContent`).
 - `ICommand<TResponse>` → handler returns `Result<TResponse>` (endpoint responds `200 Ok`).
-- `ICommand`/`ICommand<T>` come from `Web.Api.Common.Messaging`.
+- `ICommand`/`ICommand<T>` come from `VerticalSlice.Api.Common.Messaging`.
 
 ## Validator
 
@@ -156,14 +156,14 @@ internal sealed class Handler(
 
 Notes:
 - `Handler` is `internal`, but the assembly scan finds it (Scrutor `AssignableTo(ICommandHandler<,>)` over `DefinedTypes`, which includes nested types).
-- Ownership: either filter by `userContext.UserId` in the query (preferred) or compare explicitly and return `Result.Failure(UserErrors.Unauthorized())`. `IUserContext` is in `Web.Api.Authentication`; `UserErrors`/`User` in `Web.Api.Features.Users` (add `using Web.Api.Features.Users;` — a domain-type reference, which is allowed across features).
-- `IDateTimeProvider.UtcNow` (from `Web.Api.Common`) for timestamps — never `DateTime.Now`/`DateTime.Today`, and not `DateTime.UtcNow` directly in handlers. All dates are UTC. Dates from requests: the endpoint converts offset dates (`Kind == Local`) with `ToUniversalTime()` when mapping `Request` → `Command`, and every `DateTime` on a `Command` gets a validator rule requiring `Kind == DateTimeKind.Utc`, so dates sent without a timezone (`Unspecified`) are rejected (400).
+- Ownership: either filter by `userContext.UserId` in the query (preferred) or compare explicitly and return `Result.Failure(UserErrors.Unauthorized())`. `IUserContext` is in `VerticalSlice.Api.Authentication`; `UserErrors`/`User` in `VerticalSlice.Api.Features.Users` (add `using VerticalSlice.Api.Features.Users;` — a domain-type reference, which is allowed across features).
+- `IDateTimeProvider.UtcNow` (from `VerticalSlice.Api.Common`) for timestamps — never `DateTime.Now`/`DateTime.Today`, and not `DateTime.UtcNow` directly in handlers. All dates are UTC. Dates from requests: the endpoint converts offset dates (`Kind == Local`) with `ToUniversalTime()` when mapping `Request` → `Command`, and every `DateTime` on a `Command` gets a validator rule requiring `Kind == DateTimeKind.Utc`, so dates sent without a timezone (`Unspecified`) are rejected (400).
 - If the command invalidates cached query data, inject `HybridCache` and call `cache.RemoveAsync({Feature}CacheKeys.X(...), cancellationToken)` after saving.
 - For a returning command (`ICommand<Guid>`), return the value directly — `Result<T>` has an implicit conversion: `return todoItem.Id;`.
 
 ## Domain additions (if needed)
 
-These are domain types and live in the feature folder (`Features/{Entity}/`), namespace `Web.Api.Features.{Entity}` — see the `add-entity` skill.
+These are domain types and live in the feature folder (`Features/{Entity}/`), namespace `VerticalSlice.Api.Features.{Entity}` — see the `add-entity` skill.
 
 Entity method on the existing entity (properties are `private set`, so the slice cannot mutate them directly):
 
@@ -197,9 +197,9 @@ Error type → HTTP status (via `CustomResults.Problem`): `NotFound` → 404, `C
 Domain event, one file each in `Features/{Entity}/`:
 
 ```csharp
-using Web.Api.Common;
+using VerticalSlice.Api.Common;
 
-namespace Web.Api.Features.Todos;
+namespace VerticalSlice.Api.Features.Todos;
 
 public sealed record TodoItemArchivedDomainEvent(Guid TodoItemId) : IDomainEvent;
 ```
@@ -207,9 +207,9 @@ public sealed record TodoItemArchivedDomainEvent(Guid TodoItemId) : IDomainEvent
 Optional event handler — a small standalone type (it isn't a use case, so it need not be nested):
 
 ```csharp
-using Web.Api.Common;
+using VerticalSlice.Api.Common;
 
-namespace Web.Api.Features.Todos;
+namespace VerticalSlice.Api.Features.Todos;
 
 internal sealed class TodoItemArchivedDomainEventHandler : IDomainEventHandler<TodoItemArchivedDomainEvent>
 {

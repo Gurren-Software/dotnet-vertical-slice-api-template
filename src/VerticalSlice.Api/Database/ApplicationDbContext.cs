@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using VerticalSlice.Api.Common;
-#if (sample)
+#if sample
 using VerticalSlice.Api.Features.Todos;
 #endif
 using VerticalSlice.Api.Features.Users;
@@ -16,7 +16,7 @@ public sealed class ApplicationDbContext(
 
     public DbSet<RefreshToken> RefreshTokens { get; set; }
 
-#if (sample)
+#if sample
     public DbSet<TodoItem> TodoItems { get; set; }
 
 #endif

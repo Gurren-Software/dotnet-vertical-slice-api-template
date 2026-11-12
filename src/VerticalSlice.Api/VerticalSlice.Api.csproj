@@ -6,7 +6,7 @@
     <DockerfileContext>..\..</DockerfileContext>
     <DockerComposeProjectPath>..\..\docker-compose.dcproj</DockerComposeProjectPath>
     <!--#if (false) -->
-    <!-- Template repo only: compiles the Todos sample guarded by #if (sample). dotnet new strips this line and the #if blocks. -->
+    <!-- Template repo only: compiles the Todos sample guarded by #if sample. dotnet new strips this line and the #if blocks. -->
     <DefineConstants>$(DefineConstants);sample</DefineConstants>
     <!--#endif -->
   </PropertyGroup>

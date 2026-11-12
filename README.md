@@ -102,3 +102,5 @@ To target .NET 8 or .NET 9, follow the notes in `Directory.Build.props`.
 ## Credits
 
 The Gurren Software Vertical Slice template, the base of this project, builds on the work of [Milan Jovanović](https://milanjovanovic.tech), whose templates and [Pragmatic Clean Architecture](https://milanjovanovic.tech/pragmatic-clean-architecture) course shaped its structure and many of its building blocks.
+
+>Built with passion. Crafted for impact.

@@ -26,10 +26,10 @@ Delete the Todos slice everywhere:
 - `src/VerticalSlice.Api/Database/Configurations/TodoItemConfiguration.cs`.
 - Remove the `TodoItems` `DbSet` from `ApplicationDbContext` (there is no `IApplicationDbContext` and no `TestDbContext` to update — the concrete context is the only declaration).
 - `tests/VerticalSlice.Api.UnitTests/Todos/` and `tests/IntegrationTests/Todos/`.
-- Drop the table with a migration (`/add-migration Remove_Todos`), or — for a brand-new database — delete `src/VerticalSlice.Api/Database/Migrations/`, `dotnet ef migrations add Initial --project src/VerticalSlice.Api --startup-project src/VerticalSlice.Api`, and let it recreate.
+- Drop the table with a migration (`/gurren-dotnet:add-migration Remove_Todos`), or — for a brand-new database — delete `src/VerticalSlice.Api/Database/Migrations/`, `dotnet ef migrations add Initial --project src/VerticalSlice.Api --startup-project src/VerticalSlice.Api`, and let it recreate.
 
 ## Rules
 
 - Keep the whole single-project structure and every cross-cutting concern (`Common`, `Database`, `Authentication`, `Authorization`, `Notifications`, endpoints, rate limiting, security headers, observability) plus `Features/Users/` and its auth slices — only the *sample feature* is removed.
 - Build + `dotnet test` after each stage; the ArchitectureTests and integration tests surface any dangling reference.
-- Leave the `.claude/skills/` pack in place so the conventions travel with the new project.
+- The Vertical Slice skills (`/gurren-dotnet:add-feature` and the others) come from the `gurren-dotnet` plugin enabled in `.claude/settings.json`: nothing to copy, and the new project keeps receiving their updates.

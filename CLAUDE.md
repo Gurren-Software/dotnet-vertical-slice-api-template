@@ -36,7 +36,7 @@ Everything lives in a single `src/VerticalSlice.Api` project (root namespace `Ve
 
 ## Skills (prefer these for common tasks)
 
-`/add-feature` (use case) · `/add-entity` · `/add-tests` · `/add-migration` · `/add-background-job` · `/vsa-review` (convention review).
+From the `gurren-dotnet` plugin (kept up to date by auto-update): `/gurren-dotnet:add-feature` (use case) · `/gurren-dotnet:add-entity` · `/gurren-dotnet:add-tests` · `/gurren-dotnet:add-migration` · `/gurren-dotnet:add-background-job` · `/gurren-dotnet:vsa-review` (convention review). Claude also picks them from a plain request such as "add an endpoint to snooze a todo".
 <!--#if (false) -->
 
 Template repo only: `/bootstrap` renames and strips the Todos sample when you clone instead of using `dotnet new gurren-vsa`.
@@ -44,7 +44,7 @@ Template repo only: `/bootstrap` renames and strips the Todos sample when you cl
 
 ## Agent skills
 
-Shared skills come from two plugins declared in `.claude/settings.json`: `gurren` (Gurren-Software/agent-skills) and `mattpocock-skills`. Repo-specific skills stay in `.claude/skills/`.
+Shared skills come from three plugins declared in `.claude/settings.json`: `gurren` and `gurren-dotnet` (both from Gurren-Software/agent-skills) and `mattpocock-skills`. Repo-specific skills stay in `.claude/skills/`.
 
 ### Issue tracker
 

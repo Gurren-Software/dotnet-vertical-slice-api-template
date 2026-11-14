@@ -11,6 +11,7 @@
   },
   "enabledPlugins": {
     "gurren@gurren": true,
+    "gurren-dotnet@gurren": true,
     "mattpocock-skills@mattpocock": true
   }
 }

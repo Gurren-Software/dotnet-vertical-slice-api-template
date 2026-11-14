@@ -23,7 +23,7 @@
   <ItemGroup>
     <Content Include="../**/*"
              Exclude="../.git/**;../templatepack/**;../**/bin/**;../**/obj/**;../.idea/**;../.vs/**;../.containers/**"
-             PackagePath="content/vertical-slice-api/%(RecursiveDir)" />
+             PackagePath="content/vertical-slice-api/" />
   </ItemGroup>
 
 </Project>

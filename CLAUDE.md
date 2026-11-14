@@ -41,3 +41,19 @@ Everything lives in a single `src/VerticalSlice.Api` project (root namespace `Ve
 
 Template repo only: `/bootstrap` renames and strips the Todos sample when you clone instead of using `dotnet new gurren-vsa`.
 <!--#endif -->
+
+## Agent skills
+
+Shared skills come from two plugins declared in `.claude/settings.json`: `gurren` (Gurren-Software/agent-skills) and `mattpocock-skills`. Repo-specific skills stay in `.claude/skills/`.
+
+### Issue tracker
+
+GitHub issues on the Gurren Roadmap org board. Epics and User Stories in `Gurren-Software/roadmap`, Tasks and Bugs in this repo. See `docs/agents/issue-tracker.md`.
+
+### Triage
+
+Workflow state lives on the board, not in labels. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+See `docs/agents/domain.md`.

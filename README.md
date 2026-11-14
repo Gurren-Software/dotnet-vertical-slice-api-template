@@ -72,6 +72,7 @@ A single `src/VerticalSlice.Api` project, root namespace `VerticalSlice.Api`:
 - **Tests**: unit tests (`VerticalSlice.Api.UnitTests`), integration tests on a real PostgreSQL with Testcontainers (`IntegrationTests`), architecture tests (`ArchitectureTests`).
 - **CI**: GitHub Actions builds and tests every push and PR on `main` and `dev`. Dependabot keeps NuGet packages up to date.
 - **Claude Code**: `CLAUDE.md` describes the conventions, and `.claude/skills/` adds `/add-feature`, `/add-entity`, `/add-tests`, `/add-migration`, `/add-background-job` and `/vsa-review`.
+- **Gurren agent setup**: `.claude/settings.json` enables the shared `gurren` and `mattpocock-skills` plugins, `docs/agents/` describes the issue system, and `roadmap-automation.yml` syncs issues with the org board. Set the `ROADMAP_APP_ID` and `ROADMAP_APP_KEY` secrets on the new repo. Run `/gurren:gurren-repo-setup` later to bring a project back in line with the shared setup.
 
 ## Getting started
 

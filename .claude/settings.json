@@ -1,0 +1,16 @@
+{
+  "extraKnownMarketplaces": {
+    "gurren": {
+      "source": { "source": "github", "repo": "Gurren-Software/agent-skills" },
+      "autoUpdate": true
+    },
+    "mattpocock": {
+      "source": { "source": "github", "repo": "mattpocock/skills" },
+      "autoUpdate": true
+    }
+  },
+  "enabledPlugins": {
+    "gurren@gurren": true,
+    "mattpocock-skills@mattpocock": true
+  }
+}

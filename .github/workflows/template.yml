@@ -91,6 +91,19 @@ jobs:
       - name: Install the packed template
         run: dotnet new install ./artifacts/${{ env.PACKAGE_ID }}.${{ steps.version.outputs.value }}.nupkg
 
+      - name: List the package content
+        run: unzip -l ./artifacts/${{ env.PACKAGE_ID }}.${{ steps.version.outputs.value }}.nupkg
+
+      # The smoke job installs the template from source. This step checks the package itself,
+      # the one developers install from GitHub Packages.
+      - name: Generate and build a project from the package
+        run: |
+          dotnet new gurren-vsa -n PackCheck --sample true -o "$RUNNER_TEMP/PackCheck"
+          for f in PackCheck.slnx nuget.config CLAUDE.md src/PackCheck.Api/PackCheck.Api.csproj; do
+            test -f "$RUNNER_TEMP/PackCheck/$f" || { echo "Missing from the generated project: $f"; exit 1; }
+          done
+          dotnet build "$RUNNER_TEMP/PackCheck/PackCheck.slnx" --configuration Release
+
       - name: Publish to GitHub Packages
         if: startsWith(github.ref, 'refs/tags/v')
         run: >

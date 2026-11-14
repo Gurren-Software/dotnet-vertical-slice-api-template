@@ -1,0 +1,12 @@
+# Copy to .github/workflows/roadmap-automation.yml in every connected repo.
+# Needs the repo secrets ROADMAP_APP_ID and ROADMAP_APP_KEY.
+name: Roadmap automation
+
+on:
+  issues:
+    types: [opened, edited, closed, reopened, assigned]
+
+jobs:
+  automation:
+    uses: Gurren-Software/roadmap/.github/workflows/issue-automation.yml@main
+    secrets: inherit

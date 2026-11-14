@@ -46,6 +46,14 @@ jobs:
             echo "Template names found in the generated project" && exit 1
           fi
 
+      - name: Check the skills come from the plugin
+        working-directory: ${{ runner.temp }}/SmokeTest
+        run: |
+          grep -q '"gurren-dotnet@gurren": true' .claude/settings.json || { echo "gurren-dotnet is not enabled in .claude/settings.json"; exit 1; }
+          if [ -e .claude/skills ]; then
+            echo "Skills copied into the generated project: they must come from the gurren-dotnet plugin" && exit 1
+          fi
+
       - name: Create the initial migration
         if: ${{ !matrix.sample }}
         working-directory: ${{ runner.temp }}/SmokeTest
@@ -99,7 +107,7 @@ jobs:
       - name: Generate and build a project from the package
         run: |
           dotnet new gurren-vsa -n PackCheck --sample true -o "$RUNNER_TEMP/PackCheck"
-          for f in PackCheck.slnx nuget.config CLAUDE.md src/PackCheck.Api/PackCheck.Api.csproj; do
+          for f in PackCheck.slnx nuget.config CLAUDE.md .claude/settings.json src/PackCheck.Api/PackCheck.Api.csproj; do
             test -f "$RUNNER_TEMP/PackCheck/$f" || { echo "Missing from the generated project: $f"; exit 1; }
           done
           dotnet build "$RUNNER_TEMP/PackCheck/PackCheck.slnx" --configuration Release

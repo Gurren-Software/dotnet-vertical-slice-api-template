@@ -34,6 +34,14 @@ Everything lives in a single `src/VerticalSlice.Api` project (root namespace `Ve
 - `dotnet test VerticalSlice.slnx` — integration tests use Testcontainers, so Docker must be running.
 - **Analyzer-strict**: `TreatWarningsAsErrors` + SonarAnalyzer. Keep code warning-clean; prefer collection expressions (`[.. x]`) and `ToUpperInvariant`.
 
+## CI/CD
+
+- `.github/workflows/` only holds thin callers of `Gurren-Software/ci-workflows@v1`. Change pipeline logic there, not here.
+- PR titles must be Conventional Commits (`feat(todos): ...`): the squash commit feeds release-please, which owns `<Version>` and `CHANGELOG.md`.
+- CI fails when the model changed without a migration (`has-pending-model-changes`).
+- A public endpoint change updates `tests/smoke/*.hurl` (run after each deploy, read-only, also on production).
+- PR reviews follow `.claude/reviews/pr-review-template.md`.
+
 ## Skills (prefer these for common tasks)
 
 `/add-feature` (use case) · `/add-entity` · `/add-tests` · `/add-migration` · `/add-background-job` · `/vsa-review` (convention review).

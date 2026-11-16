@@ -1,6 +1,35 @@
 version: 2
 updates:
-  - package-ecosystem: "nuget"
-    directory: "/"
+  - package-ecosystem: nuget
+    directory: /
+    target-branch: develop
     schedule:
-      interval: "daily"
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "build(deps)"
+    groups:
+      microsoft:
+        patterns: ["Microsoft.*", "System.*"]
+      testing:
+        patterns: ["xunit*", "Testcontainers*", "NSubstitute*", "AwesomeAssertions*", "Shouldly*", "coverlet*", "Respawn*", "NetArchTest*", "Microsoft.NET.Test.Sdk"]
+      everything-else:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    target-branch: develop
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "ci(deps)"
+
+  - package-ecosystem: docker
+    directory: /src/VerticalSlice.Api
+    target-branch: develop
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "build(deps)"

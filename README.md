@@ -41,7 +41,7 @@ dotnet run --project src/Taxo.Api
 ### Work on the template
 
 - `main` holds the released template, `dev` collects the next changes. Open PRs against `dev`.
-- Every PR runs two workflows. `Build` builds and tests this repo. `Template` generates a project with and without the sample, checks no template name is left, then builds and tests both.
+- Every PR runs two workflows. `CI` builds and tests this repo through the shared Gurren pipeline. `Template` generates a project with and without the sample, checks no template name is left, then builds and tests both.
 - Template-only blocks (HTML or XML comments with an `if false` condition, in Markdown and project files) only exist in this repo. `dotnet new` strips them.
 
 ### Release
@@ -70,7 +70,7 @@ A single `src/VerticalSlice.Api` project, root namespace `VerticalSlice.Api`:
 - **Web API**: auto-discovered minimal API endpoints, rate limiting, idempotency keys, security headers, `ProblemDetails` error responses, Scalar API reference with JWT support.
 - **Observability**: Serilog structured logs and OpenTelemetry traces and metrics, shipped over OTLP to a bundled Grafana, Loki, Tempo and Prometheus stack (`grafana/otel-lgtm`).
 - **Tests**: unit tests (`VerticalSlice.Api.UnitTests`), integration tests on a real PostgreSQL with Testcontainers (`IntegrationTests`), architecture tests (`ArchitectureTests`).
-- **CI**: GitHub Actions builds and tests every push and PR on `main` and `dev`. Dependabot keeps NuGet packages up to date.
+- **CI/CD** (`.github/workflows/`): thin callers of the shared [Gurren-Software/ci-workflows](https://github.com/Gurren-Software/ci-workflows) pipeline. Build, format, missing-migration check, unit and integration tests with coverage, SonarQube, Docker build with a Trivy scan, Claude Code PR review, Conventional Commits PR titles, Coolify deploy with Hurl smoke tests (`tests/smoke/`), release-please releases and Discord notifications. Optional parts stay off until you set their secrets and variables, see the ci-workflows README. Dependabot updates NuGet, Actions and the Docker base image.
 - **Claude Code**: `CLAUDE.md` describes the conventions, and `.claude/skills/` adds `/add-feature`, `/add-entity`, `/add-tests`, `/add-migration`, `/add-background-job` and `/vsa-review`.
 - **Gurren agent setup**: `.claude/settings.json` enables the shared `gurren` and `mattpocock-skills` plugins, `docs/agents/` describes the issue system, and `roadmap-automation.yml` syncs issues with the org board. Set the `ROADMAP_APP_ID` and `ROADMAP_APP_KEY` secrets on the new repo. Run `/gurren:gurren-repo-setup` later to bring a project back in line with the shared setup.
 

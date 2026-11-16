@@ -1,0 +1,48 @@
+name: CI
+
+# Thin caller: the logic lives in Gurren-Software/ci-workflows (pinned to @v1).
+# Everything optional is opt-in through repo settings, see the ci-workflows README:
+#   secrets   DISCORD_WEBHOOK_URL, DISCORD_USER_ID, CLAUDE_CODE_OAUTH_TOKEN, SONAR_TOKEN, SONAR_HOST_URL,
+#             COOLIFY_TOKEN, COOLIFY_BASE_URL (+ COOLIFY_APP_UUID per environment)
+#   variables SONAR_PROJECT_KEY, DEPLOY_ENABLED=true, DEPLOY_URL per environment
+
+on:
+  push:
+    branches: [main, develop, dev]
+  pull_request:
+    branches: [main, develop, dev]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+  id-token: write
+
+jobs:
+  ci:
+    uses: Gurren-Software/ci-workflows/.github/workflows/dotnet-ci.yml@v1
+    with:
+      solution: VerticalSlice.slnx
+      dockerfile: src/VerticalSlice.Api/Dockerfile
+      ef-project: src/VerticalSlice.Api
+      sonar-project-key: ${{ vars.SONAR_PROJECT_KEY }}
+    secrets: inherit
+
+  review:
+    needs: ci
+    if: github.event_name == 'pull_request'
+    uses: Gurren-Software/ci-workflows/.github/workflows/claude-review.yml@v1
+    secrets: inherit
+
+  deploy:
+    needs: ci
+    if: github.event_name == 'push' && vars.DEPLOY_ENABLED == 'true' && github.ref_name != 'dev'
+    uses: Gurren-Software/ci-workflows/.github/workflows/coolify-deploy.yml@v1
+    with:
+      environment: ${{ github.ref_name == 'main' && 'production' || 'preview' }}
+    secrets: inherit

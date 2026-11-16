@@ -1,0 +1,21 @@
+name: Release
+
+# Opt-in with the repo variable RELEASE_ENABLED=true.
+# release-please keeps a release PR open on main; merge it to tag, publish the GitHub Release and bump <Version>.
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  release:
+    if: vars.RELEASE_ENABLED == 'true'
+    uses: Gurren-Software/ci-workflows/.github/workflows/release.yml@v1
+    with:
+      sync-branch: develop
+    secrets: inherit

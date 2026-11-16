@@ -9,6 +9,8 @@
 	<!--<TargetFramework>net9.0</TargetFramework>-->
 
     <TargetFramework>net10.0</TargetFramework>
+    <!-- Bumped by release-please from Conventional Commits. Do not edit by hand. -->
+    <Version>0.1.0</Version>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 

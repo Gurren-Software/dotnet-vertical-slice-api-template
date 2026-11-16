@@ -1,7 +1,8 @@
 name: Release
 
 # Opt-in with the repo variable RELEASE_ENABLED=true.
-# release-please keeps a release PR open on main; merge it to tag, publish the GitHub Release and bump <Version>.
+# release-please keeps a release PR open on main. Merging it tags vX.Y.Z, publishes the GitHub Release,
+# bumps <Version>, opens the back-merge PR into develop, then deploys production (if DEPLOY_ENABLED=true).
 
 on:
   push:
@@ -11,6 +12,7 @@ permissions:
   contents: write
   pull-requests: write
   issues: write
+  deployments: write
 
 jobs:
   release:
@@ -18,4 +20,12 @@ jobs:
     uses: Gurren-Software/ci-workflows/.github/workflows/release.yml@v1
     with:
       sync-branch: develop
+    secrets: inherit
+
+  deploy-production:
+    needs: release
+    if: needs.release.outputs.release_created == 'true' && vars.DEPLOY_ENABLED == 'true'
+    uses: Gurren-Software/ci-workflows/.github/workflows/coolify-deploy.yml@v1
+    with:
+      environment: production
     secrets: inherit
